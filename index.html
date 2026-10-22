@@ -1,741 +1,1033 @@
 
-<?php
-
-use Illuminate\Support\Facades\Route;
-
-Route::get('/', function () {
-    return response(<<<'HTML'
 <!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Snap & Smile | Photobooth</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Snap & Smile Photobooth</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
-
 :root {
-    --navy: #243b53;
-    --blue: #73c8f0;
-    --mint: #a8dfc4;
-    --yellow: #ffe18a;
-    --purple: #c8b8f4;
-    --cream: #fffdf4;
+  --ink: #29364b;
+  --mint: #c9eee5;
+  --blue: #d4e7ff;
+  --yellow: #ffeba9;
+  --purple: #e4d9ff;
+  --peach: #f8ddd2;
+  --paper: #fffdf8;
 }
 
 * { box-sizing: border-box; }
 
 body {
-    margin: 0;
-    font-family: 'Nunito', sans-serif;
-    color: var(--navy);
-    background-color: var(--cream);
-    background-image: radial-gradient(#d8e8db 1.4px, transparent 1.4px);
-    background-size: 22px 22px;
+  margin: 0;
+  color: var(--ink);
+  font-family: 'Nunito', sans-serif;
+  background:
+    radial-gradient(circle at 10% 5%, #dcf6ed, transparent 30%),
+    radial-gradient(circle at 90% 10%, #eee5ff, transparent 28%),
+    #f8fafc;
 }
 
 button, select { font: inherit; }
 
-button { cursor: pointer; }
-
-.navbar {
-    background: white;
-    padding: 16px 6%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 3px solid var(--navy);
-    gap: 12px;
+button {
+  cursor: pointer;
+  border: none;
+  border-radius: 13px;
+  padding: 11px 15px;
+  font-weight: 800;
+  transition: .2s;
 }
 
-.logo { font-size: 22px; font-weight: 900; }
-.logo span { color: #3299ce; }
+button:hover { transform: translateY(-2px); }
+button:disabled { opacity: .45; cursor: not-allowed; }
 
-.pill {
-    background: var(--mint);
-    padding: 8px 15px;
-    border: 2px solid var(--navy);
-    border-radius: 50px;
-    font-size: 12px;
-    font-weight: 900;
+.container {
+  max-width: 1120px;
+  margin: auto;
+  padding: 22px 16px 40px;
 }
 
-.hero {
-    text-align: center;
-    padding: 32px 16px 20px;
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 25px;
 }
 
-.hero h1 {
-    font-size: clamp(32px, 5vw, 54px);
-    line-height: 1.08;
-    margin: 0 0 12px;
-    font-weight: 900;
-    letter-spacing: -2px;
+.brand {
+  display: flex;
+  gap: 12px;
+  align-items: center;
 }
 
-.hero h1 span {
-    background: var(--yellow);
-    padding: 0 10px;
-    transform: rotate(-2deg);
-    display: inline-block;
-    border: 2px solid var(--navy);
-    border-radius: 12px;
+.logo {
+  width: 50px;
+  height: 50px;
+  display: grid;
+  place-items: center;
+  border-radius: 17px;
+  background: var(--yellow);
+  font-size: 27px;
+  box-shadow: 0 5px 0 #eed58a;
 }
 
-.hero p { margin: 14px 0; color: #657789; }
+h1, h2, h3, h4, p { margin-top: 0; }
 
-.app {
-    max-width: 1120px;
-    margin: 0 auto;
-    padding: 12px 20px 45px;
-    display: grid;
-    grid-template-columns: 1.15fr 0.85fr;
-    gap: 24px;
-    align-items: start;
+h1 {
+  font: 700 25px 'Fredoka', sans-serif;
+  margin-bottom: 2px;
+}
+
+.subtitle {
+  color: #748096;
+  font-size: 12px;
+}
+
+.status {
+  padding: 9px 13px;
+  border-radius: 30px;
+  background: white;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.hero { margin-bottom: 22px; }
+
+.hero small {
+  letter-spacing: 2px;
+  font-weight: 800;
+  color: #6c8494;
+}
+
+.hero h2 {
+  font: 600 clamp(28px, 5vw, 42px) 'Fredoka', sans-serif;
+  margin: 8px 0;
+}
+
+.hero p {
+  color: #748096;
+  line-height: 1.6;
+  max-width: 580px;
+  font-size: 14px;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 1.2fr .8fr;
+  gap: 18px;
+  align-items: start;
 }
 
 .panel {
-    background: white;
-    border: 3px solid var(--navy);
-    border-radius: 22px;
-    padding: 20px;
-    box-shadow: 6px 6px 0 var(--navy);
-    min-width: 0;
+  background: rgba(255,255,255,.94);
+  border: 1px solid #e0e7ed;
+  border-radius: 23px;
+  padding: 17px;
+  margin-bottom: 17px;
+  box-shadow: 0 12px 35px #29364b0a;
 }
 
-.panel-title {
-    font-size: 20px;
-    font-weight: 900;
-    margin: 0 0 14px;
+.panel h3 {
+  font: 600 19px 'Fredoka', sans-serif;
+  margin-bottom: 14px;
 }
 
-.camera-box {
-    position: relative;
-    overflow: hidden;
-    border: 3px solid var(--navy);
-    border-radius: 15px;
-    background: #dce8ec;
-    aspect-ratio: 4 / 3;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.camera {
+  position: relative;
+  overflow: hidden;
+  background: #202c3e;
+  border-radius: 17px;
+  aspect-ratio: 4/3;
+  display: grid;
+  place-items: center;
 }
 
-#video {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transform: scaleX(-1);
-    display: none;
+video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1);
+  filter: none;
 }
 
-.camera-placeholder {
-    text-align: center;
-    padding: 15px;
+.placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: white;
+  text-align: center;
+  padding: 20px;
+  background: linear-gradient(135deg, #435d7c, #202c3e);
 }
 
-.camera-placeholder .big { font-size: 55px; }
+.placeholder .emoji { font-size: 48px; }
 
-.camera-placeholder p { font-size: 13px; }
+.placeholder p {
+  font-size: 12px;
+  color: #dce5ef;
+  max-width: 260px;
+  line-height: 1.5;
+  margin: 0;
+}
 
-.camera-tag {
-    position: absolute;
-    top: 12px;
-    left: 12px;
-    background: white;
-    padding: 6px 10px;
-    border: 2px solid var(--navy);
-    border-radius: 9px;
-    font-size: 11px;
-    font-weight: 900;
+.camera-label, .gesture-label {
+  position: absolute;
+  top: 10px;
+  padding: 7px 10px;
+  border-radius: 30px;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.camera-label {
+  left: 10px;
+  background: #fffdf0e8;
+}
+
+.gesture-label {
+  right: 10px;
+  color: white;
+  background: #172438d9;
 }
 
 .countdown {
-    position: absolute;
-    inset: 0;
-    display: none;
-    place-items: center;
-    background: #243b5344;
-    color: white;
-    font-size: 100px;
-    font-weight: 900;
-    text-shadow: 3px 4px var(--navy);
+  display: none;
+  position: absolute;
+  inset: 0;
+  place-items: center;
+  color: white;
+  font: 700 100px 'Fredoka', sans-serif;
+  background: #10182755;
+  text-shadow: 0 5px 25px #0008;
 }
+
+.countdown.show { display: grid; }
 
 .controls {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 9px;
-    margin-top: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
 }
 
-.btn {
-    border: 2px solid var(--navy);
-    border-radius: 12px;
-    padding: 11px 14px;
-    font-weight: 900;
-    box-shadow: 3px 3px 0 var(--navy);
-    transition: transform .12s;
+.primary { background: var(--ink); color: white; }
+.mint { background: var(--mint); color: var(--ink); }
+.yellow { background: var(--yellow); color: var(--ink); }
+.blue { background: var(--blue); color: var(--ink); }
+.purple { background: var(--purple); color: var(--ink); }
+.light { background: #f0f3f7; color: var(--ink); }
+
+.controls .primary { flex: 1; }
+
+.note {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  background: #f3f6fa;
+  color: #65738a;
+  font-size: 11px;
+  line-height: 1.6;
 }
 
-.btn:active { transform: translate(2px, 2px); box-shadow: none; }
-.btn-blue { background: var(--blue); }
-.btn-yellow { background: var(--yellow); }
-.btn-mint { background: var(--mint); }
-.btn-purple { background: var(--purple); }
-.btn-dark { background: var(--navy); color: white; }
+.section { margin-top: 20px; }
 
-.small-note {
-    font-size: 12px;
-    line-height: 1.6;
-    color: #6c7d89;
-    margin: 14px 0 0;
+.section-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
 }
 
-.section-label {
-    font-size: 13px;
-    font-weight: 900;
-    margin: 20px 0 10px;
-    display: block;
+.section-title h4 {
+  font: 600 16px 'Fredoka', sans-serif;
+  margin: 0;
 }
 
-.templates {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
+.muted { color: #7c8798; font-size: 11px; }
+
+.filters {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
 }
 
-.template {
-    border: 2px solid #d6dfe5;
-    background: white;
-    border-radius: 12px;
-    padding: 10px 5px;
-    text-align: center;
-    color: var(--navy);
-    font-size: 11px;
-    font-weight: 900;
+.filter {
+  padding: 0;
+  border: 2px solid transparent;
+  overflow: hidden;
+  background: #f2f5f8;
+  text-align: left;
 }
 
-.template.active {
-    border: 3px solid var(--navy);
-    background: var(--yellow);
-    box-shadow: 3px 3px 0 var(--navy);
+.filter.active, .frame.active {
+  border: 2px solid #7185bd;
+  background: #f3f0ff;
 }
 
-.mini-strip {
-    width: 44px;
-    height: 58px;
-    margin: 0 auto 7px;
-    padding: 4px;
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-    background: var(--mint);
-    border: 1px solid #243b53;
+.sample {
+  height: 48px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #b9d7f5, #f5d5c8);
+  font-size: 22px;
 }
 
-.mini-strip i { flex: 1; background: white; border: 1px solid #243b53; }
-.template:nth-child(2) .mini-strip { background: #263b52; }
-.template:nth-child(3) .mini-strip { background: #d4c8fa; }
-.template:nth-child(4) .mini-strip { background: #ffe18a; }
-.template:nth-child(5) .mini-strip { background: #d8eaf6; }
-.template:nth-child(6) .mini-strip { background: #c6c7c9; }
+.filter span {
+  display: block;
+  padding: 7px;
+  font-size: 11px;
+}
+
+.frames {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.frame {
+  background: #f3f5f8;
+  border: 2px solid transparent;
+  padding: 8px 4px;
+  font-size: 11px;
+}
+
+.frame-preview {
+  height: 48px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 3px;
+  border-radius: 7px;
+  margin-bottom: 6px;
+}
+
+.frame-preview i {
+  width: 20px;
+  height: 34px;
+  border: 2px solid white;
+  border-radius: 4px;
+  background: linear-gradient(145deg, #b9d7f5, #e3d8ff);
+}
 
 .stickers {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
 }
 
 .sticker {
-    background: #f5f7fa;
-    border: 2px solid #d7e0e8;
-    border-radius: 12px;
-    padding: 8px 10px;
-    font-size: 23px;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  background: #f1f4f7;
+  border: 1px solid #e0e7ed;
+  font-size: 21px;
 }
 
 .sticker.active {
-    background: var(--yellow);
-    border-color: var(--navy);
+  background: var(--yellow);
+  border-color: #e2c65f;
 }
 
-.result-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 10px;
+.empty {
+  min-height: 190px;
+  border: 2px dashed #dce4eb;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 20px;
+  color: #718096;
 }
 
-.counter {
-    background: var(--yellow);
-    border: 2px solid var(--navy);
-    border-radius: 30px;
-    padding: 5px 10px;
-    font-size: 12px;
-    font-weight: 900;
+.empty .big { font-size: 42px; }
+
+.empty h4 {
+  color: var(--ink);
+  font: 600 17px 'Fredoka', sans-serif;
+  margin: 8px 0;
 }
 
-.result-stage {
-    min-height: 330px;
-    padding: 18px 8px;
-    background: #f1f5f6;
-    border: 2px dashed #aabcc8;
-    border-radius: 15px;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    overflow: auto;
+.empty p { font-size: 11px; line-height: 1.5; }
+
+.thumbnails {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.thumbnails img {
+  width: 100%;
+  aspect-ratio: 3/4;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.strip-wrap {
+  background: #f0f3f7;
+  border-radius: 14px;
+  padding: 9px;
 }
 
 #strip {
-    width: 190px;
-    padding: 12px 12px 18px;
-    background: var(--mint);
-    border: 2px solid var(--navy);
-    text-align: center;
-    flex-shrink: 0;
-}
-
-#strip[data-theme="classic"] { background: #a8dfc4; }
-#strip[data-theme="midnight"] { background: #263b52; color: white; }
-#strip[data-theme="lavender"] { background: #d4c8fa; }
-#strip[data-theme="sunshine"] { background: #ffe18a; }
-#strip[data-theme="ocean"] { background: #d8eaf6; }
-#strip[data-theme="mono"] { background: #d7d7d7; filter: grayscale(1); }
-
-.strip-title {
-    font-weight: 900;
-    font-size: 15px;
-    margin-bottom: 9px;
-}
-
-.photo-slot {
-    width: 100%;
-    aspect-ratio: 4 / 3;
-    margin-bottom: 8px;
-    background: #e8edef;
-    border: 2px solid var(--navy);
-    position: relative;
-    overflow: hidden;
-}
-
-.photo-slot img {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transform: scaleX(-1);
-}
-
-.photo-slot .empty {
-    height: 100%;
-    display: grid;
-    place-items: center;
-    color: #657789;
-    font-size: 26px;
-}
-
-.photo-slot .deco {
-    position: absolute;
-    bottom: 3px;
-    right: 4px;
-    font-size: 22px;
-    filter: none;
-}
-
-.strip-footer {
-    font-size: 10px;
-    font-weight: 900;
-    margin-top: 8px;
-    letter-spacing: 1px;
-}
-
-.empty-result {
-    text-align: center;
-    margin: auto;
-    color: #6c7d89;
-    font-size: 13px;
-    line-height: 1.8;
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
 }
 
 .result-actions {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-top: 14px;
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
 }
 
-.result-actions .btn { padding: 10px 5px; font-size: 12px; }
+.result-actions button { flex: 1; }
 
-.status {
-    font-size: 12px;
-    font-weight: 800;
-    min-height: 20px;
-    margin-top: 10px;
-    color: #427a5e;
+.guide {
+  display: grid;
+  gap: 12px;
+}
+
+.guide-item {
+  display: flex;
+  gap: 10px;
+  font-size: 12px;
+  color: #718096;
+  line-height: 1.5;
+}
+
+.guide-item strong { color: var(--ink); }
+
+.num {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 27px;
+  height: 27px;
+  border-radius: 9px;
+  background: var(--blue);
+  color: var(--ink);
+  font-weight: 800;
 }
 
 footer {
-    text-align: center;
-    padding: 18px;
-    font-size: 12px;
-    font-weight: 800;
-    color: #647789;
+  text-align: center;
+  color: #8793a5;
+  font-size: 11px;
+  padding: 15px;
 }
 
-@media (max-width: 760px) {
-    .app { grid-template-columns: 1fr; padding: 10px 15px 30px; }
-    .navbar { padding: 14px 18px; }
-    .panel { padding: 15px; }
-    .hero { padding-top: 27px; }
+@media(max-width: 780px) {
+  .layout { grid-template-columns: 1fr; }
+}
+
+@media(max-width: 480px) {
+  .container { padding: 14px 11px; }
+  .panel { padding: 12px; }
+  .status { font-size: 10px; }
 }
 </style>
 </head>
 
 <body>
-<nav class="navbar">
-    <div class="logo">📸 Snap<span>&Smile</span></div>
-    <div class="pill">✦ YOUR LITTLE PHOTO STUDIO</div>
-</nav>
+<div class="container">
 
-<header class="hero">
-    <h1>Strike a pose.<br><span>Keep the memory!</span></h1>
-    <p>Foto dulu, mikirin gaya belakangan. 😎</p>
+<header>
+  <div class="brand">
+    <div class="logo">📸</div>
+    <div>
+      <h1>Snap & Smile</h1>
+      <div class="subtitle">your little photo corner ✦</div>
+    </div>
+  </div>
+  <div class="status" id="status">🟡 Kamera standby</div>
 </header>
 
-<main class="app">
+<section class="hero">
+  <small>✦ MAKE A LITTLE MEMORY</small>
+  <h2>Strike a pose, save the moment!</h2>
+  <p>Pilih filter favoritmu, tunjukkan telapak tangan untuk memulai hitung mundur, lalu simpan photostrip lucumu.</p>
+</section>
+
+<main class="layout">
+  <section class="panel">
+    <h3>01 / Camera studio</h3>
+
+    <div class="camera">
+      <video id="video" autoplay muted playsinline></video>
+      <div class="placeholder" id="placeholder">
+        <div class="emoji">📷</div>
+        <strong>Kamera siap saat kamu siap!</strong>
+        <p>Tekan tombol aktifkan kamera, lalu izinkan akses kamera pada browser.</p>
+      </div>
+      <div class="camera-label">● LIVE PREVIEW</div>
+      <div class="gesture-label" id="gestureStatus">✋ Gesture standby</div>
+      <div class="countdown" id="countdown"></div>
+    </div>
+
+    <div class="controls">
+      <button class="primary" id="start">Aktifkan kamera</button>
+      <button class="mint" id="capture" disabled>📸 Ambil 3 foto</button>
+      <button class="light" id="stop" disabled>Matikan kamera</button>
+    </div>
+
+    <div class="note" id="gestureNote">
+      <strong>Mode otomatis:</strong> buka telapak tangan menghadap kamera selama sekitar 1 detik untuk memulai sesi foto. Gesture menggunakan MediaPipe Hands.
+    </div>
+
+    <div class="section">
+      <div class="section-title">
+        <h4>02 / Pilih filter</h4>
+        <span class="muted">Live filter</span>
+      </div>
+      <div class="filters">
+        <button class="filter active" data-filter="none">
+          <div class="sample">🌤️</div><span>Original</span>
+        </button>
+        <button class="filter" data-filter="mono">
+          <div class="sample" style="filter:grayscale(1)">◐</div><span>Black & white</span>
+        </button>
+        <button class="filter" data-filter="vintage">
+          <div class="sample" style="filter:sepia(.65)">🌼</div><span>Vintage</span>
+        </button>
+        <button class="filter" data-filter="warm">
+          <div class="sample" style="filter:sepia(.25) saturate(1.4)">☀️</div><span>Warm</span>
+        </button>
+        <button class="filter" data-filter="dreamy">
+          <div class="sample" style="filter:brightness(1.2) saturate(.7)">☁️</div><span>Dreamy</span>
+        </button>
+        <button class="filter" data-filter="cool">
+          <div class="sample" style="filter:hue-rotate(25deg)">🧊</div><span>Cool</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">
+        <h4>03 / Pilih frame</h4>
+        <span class="muted">6 desain</span>
+      </div>
+      <div class="frames">
+        <button class="frame active" data-frame="mint">
+          <div class="frame-preview" style="background:#c9eee5"><i></i><i></i><i></i></div>Mint day
+        </button>
+        <button class="frame" data-frame="blue">
+          <div class="frame-preview" style="background:#d4e7ff"><i></i><i></i><i></i></div>Blue sky
+        </button>
+        <button class="frame" data-frame="yellow">
+          <div class="frame-preview" style="background:#ffeba9"><i></i><i></i><i></i></div>Sunshine
+        </button>
+        <button class="frame" data-frame="purple">
+          <div class="frame-preview" style="background:#e4d9ff"><i></i><i></i><i></i></div>Lilac pop
+        </button>
+        <button class="frame" data-frame="peach">
+          <div class="frame-preview" style="background:#f8ddd2"><i></i><i></i><i></i></div>Peachy
+        </button>
+        <button class="frame" data-frame="night">
+          <div class="frame-preview" style="background:#29364b"><i></i><i></i><i></i></div>Night sky
+        </button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">
+        <h4>04 / Pilih stiker</h4>
+        <span class="muted">Tempel di strip</span>
+      </div>
+      <div class="stickers">
+        <button class="sticker active" data-sticker="✨">✨</button>
+        <button class="sticker" data-sticker="⭐">⭐</button>
+        <button class="sticker" data-sticker="🌼">🌼</button>
+        <button class="sticker" data-sticker="🦋">🦋</button>
+        <button class="sticker" data-sticker="🍒">🍒</button>
+        <button class="sticker" data-sticker="☁️">☁️</button>
+        <button class="sticker" data-sticker="💫">💫</button>
+        <button class="sticker" data-sticker="">✕</button>
+      </div>
+    </div>
+  </section>
+
+  <aside>
     <section class="panel">
-        <h2 class="panel-title">01. Camera Studio 📷</h2>
+      <div class="section-title">
+        <h3>05 / Your photostrip</h3>
+        <span class="muted" id="photoCount">0 / 3 foto</span>
+      </div>
 
-        <div class="camera-box">
-            <div class="camera-placeholder" id="placeholder">
-                <div class="big">📸</div>
-                <strong>Your camera is waiting!</strong>
-                <p>Klik tombol di bawah untuk mulai foto-foto.</p>
-            </div>
-            <video id="video" autoplay playsinline muted></video>
-            <div class="camera-tag">● SNAP MODE</div>
-            <div class="countdown" id="countdown">3</div>
+      <div class="empty" id="empty">
+        <div class="big">🖼️</div>
+        <h4>Foto kamu muncul di sini</h4>
+        <p>Ambil tiga foto untuk membuat photostrip yang bisa diunduh.</p>
+      </div>
+
+      <div id="result" hidden>
+        <div class="thumbnails" id="thumbnails"></div>
+        <div class="section" style="margin-top:16px">
+          <h4>Hasil akhir</h4>
+          <div class="strip-wrap">
+            <canvas id="strip" width="600" height="1200"></canvas>
+          </div>
         </div>
-
-        <div class="controls">
-            <button class="btn btn-blue" id="startBtn" onclick="startCamera()">🎥 Buka Kamera</button>
-            <button class="btn btn-yellow" id="captureBtn" onclick="takePhoto()" disabled>📸 Ambil Foto 1/3</button>
-        </div>
-
-        <p class="small-note">
-            💡 Izinkan akses kamera saat browser meminta izin.
-            Ambil 3 foto untuk melengkapi strip photobooth kamu.
-        </p>
-
-        <span class="section-label">PILIH FRAME FAVORIT ✨</span>
-
-        <div class="templates">
-            <button class="template active" data-theme="classic" onclick="chooseTheme(this)">
-                <span class="mini-strip"><i></i><i></i><i></i></span>Mint Fresh
-            </button>
-            <button class="template" data-theme="midnight" onclick="chooseTheme(this)">
-                <span class="mini-strip"><i></i><i></i><i></i></span>Night Owl
-            </button>
-            <button class="template" data-theme="lavender" onclick="chooseTheme(this)">
-                <span class="mini-strip"><i></i><i></i><i></i></span>Grape Soda
-            </button>
-            <button class="template" data-theme="sunshine" onclick="chooseTheme(this)">
-                <span class="mini-strip"><i></i><i></i><i></i></span>Sunny Day
-            </button>
-            <button class="template" data-theme="ocean" onclick="chooseTheme(this)">
-                <span class="mini-strip"><i></i><i></i><i></i></span>Ocean Blue
-            </button>
-            <button class="template" data-theme="mono" onclick="chooseTheme(this)">
-                <span class="mini-strip"><i></i><i></i><i></i></span>Retro Mono
-            </button>
-        </div>
-
-        <span class="section-label">TAMBAH TEMAN FOTO 🐣</span>
-        <div class="stickers">
-            <button class="sticker active" data-sticker="⭐" onclick="chooseSticker(this)">⭐</button>
-            <button class="sticker" data-sticker="🐥" onclick="chooseSticker(this)">🐥</button>
-            <button class="sticker" data-sticker="☁️" onclick="chooseSticker(this)">☁️</button>
-            <button class="sticker" data-sticker="🌻" onclick="chooseSticker(this)">🌻</button>
-            <button class="sticker" data-sticker="🍄" onclick="chooseSticker(this)">🍄</button>
-            <button class="sticker" data-sticker="🦋" onclick="chooseSticker(this)">🦋</button>
-            <button class="sticker" data-sticker="🍀" onclick="chooseSticker(this)">🍀</button>
-        </div>
-        <p class="small-note">Stiker pilihan akan muncul di sudut setiap foto hasil jepretan.</p>
-    </section>
-
-    <section class="panel">
-        <div class="result-head">
-            <h2 class="panel-title">02. Your Photo Strip 🎞️</h2>
-            <span class="counter" id="counter">0 / 3</span>
-        </div>
-
-        <div class="result-stage">
-            <div id="strip" data-theme="classic">
-                <div class="strip-title">✦ BEST DAY EVER ✦</div>
-                <div id="photos"></div>
-                <div class="strip-footer">SNAP & SMILE • 2026</div>
-            </div>
-        </div>
-
         <div class="result-actions">
-            <button class="btn btn-mint" onclick="downloadStrip()">⬇️ Download Foto</button>
-            <button class="btn btn-purple" onclick="resetPhotos()">↻ Ulang dari Awal</button>
+          <button class="primary" id="download">⬇ Unduh PNG</button>
+          <button class="light" id="retake">Ulangi</button>
         </div>
-
-        <div class="status" id="status">Yuk, mulai abadikan momenmu!</div>
-        <p class="small-note">
-            📌 Foto akan disusun otomatis menjadi satu strip vertikal.
-            Setelah 3 foto terkumpul, kamu bisa menyimpan hasilnya.
-        </p>
+      </div>
     </section>
+
+    <section class="panel">
+      <h3>Gesture guide ✋</h3>
+      <div class="guide">
+        <div class="guide-item"><span class="num">1</span><div><strong>Aktifkan kamera</strong><br>Berikan izin kamera pada browser.</div></div>
+        <div class="guide-item"><span class="num">2</span><div><strong>Buka telapak tangan</strong><br>Arahkan telapak tangan ke kamera sampai terdeteksi.</div></div>
+        <div class="guide-item"><span class="num">3</span><div><strong>Pose dan senyum!</strong><br>Hitung mundur akan mengambil 3 foto.</div></div>
+      </div>
+      <div class="note">Jika gesture tidak terbaca, gunakan tombol “Ambil 3 foto”. Kamera harus dibuka melalui HTTPS atau localhost.</div>
+    </section>
+  </aside>
 </main>
 
-<footer>Made with ☀️, good vibes & a little bit of chaos.</footer>
+<footer>Made for little memories ✦ Snap & Smile Photobooth</footer>
+</div>
 
 <script>
 const video = document.getElementById('video');
 const placeholder = document.getElementById('placeholder');
-const captureBtn = document.getElementById('captureBtn');
-const startBtn = document.getElementById('startBtn');
+const startBtn = document.getElementById('start');
+const captureBtn = document.getElementById('capture');
+const stopBtn = document.getElementById('stop');
 const countdown = document.getElementById('countdown');
-const photosEl = document.getElementById('photos');
-const strip = document.getElementById('strip');
-const counter = document.getElementById('counter');
 const statusEl = document.getElementById('status');
+const gestureStatus = document.getElementById('gestureStatus');
+const gestureNote = document.getElementById('gestureNote');
+const photoCount = document.getElementById('photoCount');
+const empty = document.getElementById('empty');
+const result = document.getElementById('result');
+const thumbnails = document.getElementById('thumbnails');
+const strip = document.getElementById('strip');
+const ctx = strip.getContext('2d');
 
-let cameraStream = null;
+let stream = null;
+let hands = null;
+let mpCamera = null;
+let cameraOn = false;
+let takingPhotos = false;
 let photos = [];
-let theme = 'classic';
-let sticker = '⭐';
-let busy = false;
+let filterName = 'none';
+let frameName = 'mint';
+let sticker = '✨';
+let palmSince = 0;
+let lastGesture = 0;
+let gestureLocked = false;
 
-function setStatus(message) {
-    statusEl.textContent = message;
+const filters = {
+  none: 'none',
+  mono: 'grayscale(1) contrast(1.08)',
+  vintage: 'sepia(.55) contrast(1.05) saturate(.85)',
+  warm: 'saturate(1.3) sepia(.16) brightness(1.04)',
+  dreamy: 'brightness(1.13) saturate(.82) contrast(.94)',
+  cool: 'hue-rotate(18deg) saturate(.9)'
+};
+
+const colors = {
+  mint: '#c9eee5',
+  blue: '#d4e7ff',
+  yellow: '#ffeba9',
+  purple: '#e4d9ff',
+  peach: '#f8ddd2',
+  night: '#29364b'
+};
+
+const textColors = {
+  mint: '#29364b',
+  blue: '#29364b',
+  yellow: '#574725',
+  purple: '#44365d',
+  peach: '#604139',
+  night: '#ffffff'
+};
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
+
+function setStatus(message, active = false) {
+  statusEl.textContent = (active ? '🟢 ' : '🟡 ') + message;
+}
+
+document.querySelectorAll('.filter').forEach(button => {
+  button.addEventListener('click', () => {
+    filterName = button.dataset.filter;
+    video.style.filter = filters[filterName];
+    document.querySelectorAll('.filter').forEach(b =>
+      b.classList.toggle('active', b === button)
+    );
+  });
+});
+
+document.querySelectorAll('.frame').forEach(button => {
+  button.addEventListener('click', () => {
+    frameName = button.dataset.frame;
+    document.querySelectorAll('.frame').forEach(b =>
+      b.classList.toggle('active', b === button)
+    );
+    if (photos.length) renderStrip();
+  });
+});
+
+document.querySelectorAll('.sticker').forEach(button => {
+  button.addEventListener('click', () => {
+    sticker = button.dataset.sticker;
+    document.querySelectorAll('.sticker').forEach(b =>
+      b.classList.toggle('active', b === button)
+    );
+    if (photos.length) renderStrip();
+  });
+});
 
 async function startCamera() {
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        setStatus('Browser tidak mendukung kamera. Buka halaman melalui HTTPS.');
-        return;
-    }
+  if (cameraOn) return;
 
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    alert('Browser tidak mendukung kamera. Buka website melalui HTTPS.');
+    return;
+  }
+
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: 'user',
+        width: { ideal: 1280 },
+        height: { ideal: 960 }
+      },
+      audio: false
+    });
+
+    video.srcObject = stream;
+    await video.play();
+    cameraOn = true;
+
+    placeholder.style.display = 'none';
     startBtn.disabled = true;
-    setStatus('Meminta izin kamera...');
+    captureBtn.disabled = false;
+    stopBtn.disabled = false;
+    setStatus('Kamera aktif', true);
+    gestureStatus.textContent = '✋ Menunggu telapak';
+    startHandDetection();
+  } catch (error) {
+    alert('Kamera gagal dibuka. Izinkan akses kamera pada browser dan pastikan tidak sedang digunakan aplikasi lain. Detail: ' + error.message);
+  }
+}
 
-    try {
-        cameraStream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 960 } },
-            audio: false
-        });
+function stopCamera() {
+  if (stream) stream.getTracks().forEach(track => track.stop());
+  stream = null;
+  cameraOn = false;
 
-        video.srcObject = cameraStream;
-        await video.play();
-        video.style.display = 'block';
-        placeholder.style.display = 'none';
-        captureBtn.disabled = false;
-        startBtn.textContent = '📹 Kamera Aktif';
-        setStatus('Kamera siap! Senyum dulu, ya 😁');
-    } catch (error) {
-        startBtn.disabled = false;
-        setStatus('Kamera gagal dibuka. Periksa izin kamera browser dan koneksi aman HTTPS.');
-        console.error(error);
+  if (mpCamera) {
+    try { mpCamera.stop(); } catch (e) {}
+    mpCamera = null;
+  }
+
+  if (hands) {
+    try { hands.close(); } catch (e) {}
+    hands = null;
+  }
+
+  video.srcObject = null;
+  video.style.filter = 'none';
+  placeholder.style.display = 'flex';
+  startBtn.disabled = false;
+  captureBtn.disabled = true;
+  stopBtn.disabled = true;
+  setStatus('Kamera standby');
+  gestureStatus.textContent = '✋ Gesture standby';
+}
+
+startBtn.addEventListener('click', startCamera);
+stopBtn.addEventListener('click', stopCamera);
+
+function startHandDetection() {
+  if (!window.Hands || !window.Camera) {
+    gestureStatus.textContent = 'Gesture tidak tersedia';
+    gestureNote.textContent = 'Pustaka deteksi tangan tidak berhasil dimuat. Tombol ambil foto tetap bisa digunakan.';
+    return;
+  }
+
+  hands = new Hands({
+    locateFile: file =>
+      'https://cdn.jsdelivr.net/npm/@mediapipe/hands/' + file
+  });
+
+  hands.setOptions({
+    maxNumHands: 1,
+    modelComplexity: 1,
+    minDetectionConfidence: 0.65,
+    minTrackingConfidence: 0.6
+  });
+
+  hands.onResults(results => {
+    if (!cameraOn || takingPhotos) return;
+
+    const landmarks =
+      results.multiHandLandmarks &&
+      results.multiHandLandmarks[0];
+
+    if (!landmarks) {
+      palmSince = 0;
+      gestureLocked = false;
+      gestureStatus.textContent = '✋ Menunggu telapak';
+      return;
     }
-}
 
-function takePhoto() {
-    if (!cameraStream || busy || photos.length >= 3) return;
+    // Deteksi perkiraan jari terbuka berdasarkan posisi landmark.
+    const tips = [8, 12, 16, 20];
+    const middle = [6, 10, 14, 18];
+    const extended = tips.filter((tip, i) =>
+      landmarks[tip].y < landmarks[middle[i]].y
+    ).length;
 
-    busy = true;
-    captureBtn.disabled = true;
-    let count = 3;
-    countdown.style.display = 'grid';
-    countdown.textContent = count;
+    if (extended >= 4) {
+      gestureStatus.textContent = '✋ Telapak terdeteksi!';
 
-    const timer = setInterval(() => {
-        count--;
+      if (!palmSince) palmSince = Date.now();
 
-        if (count > 0) {
-            countdown.textContent = count;
-        } else {
-            clearInterval(timer);
-            countdown.style.display = 'none';
-
-            const canvas = document.createElement('canvas');
-            canvas.width = video.videoWidth || 640;
-            canvas.height = video.videoHeight || 480;
-
-            const ctx = canvas.getContext('2d');
-            ctx.translate(canvas.width, 0);
-            ctx.scale(-1, 1);
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-            photos.push(canvas.toDataURL('image/jpeg', 0.92));
-            renderPhotos();
-
-            busy = false;
-            captureBtn.disabled = photos.length >= 3;
-            captureBtn.textContent = photos.length < 3
-                ? '📸 Ambil Foto ' + (photos.length + 1) + '/3'
-                : '✅ Foto Lengkap!';
-
-            setStatus(photos.length < 3
-                ? 'Foto ' + photos.length + ' berhasil! Pose berikutnya ✌️'
-                : 'Yeay! Strip fotomu sudah lengkap 🎉');
-        }
-    }, 700);
-}
-
-function chooseTheme(button) {
-    document.querySelectorAll('.template').forEach(el => el.classList.remove('active'));
-    button.classList.add('active');
-    theme = button.dataset.theme;
-    strip.dataset.theme = theme;
-}
-
-function chooseSticker(button) {
-    document.querySelectorAll('.sticker').forEach(el => el.classList.remove('active'));
-    button.classList.add('active');
-    sticker = button.dataset.sticker;
-    renderPhotos();
-}
-
-function renderPhotos() {
-    photosEl.innerHTML = '';
-
-    if (photos.length === 0) {
-        photosEl.innerHTML = `
-            <div class="photo-slot"><div class="empty">📷</div></div>
-            <div class="photo-slot"><div class="empty">✌️</div></div>
-            <div class="photo-slot"><div class="empty">😎</div></div>`;
+      if (
+        Date.now() - palmSince > 1000 &&
+        Date.now() - lastGesture > 12000 &&
+        !gestureLocked
+      ) {
+        gestureLocked = true;
+        lastGesture = Date.now();
+        takePhotoSequence();
+      }
     } else {
-        photos.forEach(src => {
-            const slot = document.createElement('div');
-            slot.className = 'photo-slot';
-
-            const img = document.createElement('img');
-            img.src = src;
-            img.alt = 'Hasil foto photobooth';
-
-            const deco = document.createElement('span');
-            deco.className = 'deco';
-            deco.textContent = sticker;
-
-            slot.append(img, deco);
-            photosEl.appendChild(slot);
-        });
-
-        for (let i = photos.length; i < 3; i++) {
-            const slot = document.createElement('div');
-            slot.className = 'photo-slot';
-            slot.innerHTML = '<div class="empty">📷</div>';
-            photosEl.appendChild(slot);
-        }
+      palmSince = 0;
+      gestureLocked = false;
+      gestureStatus.textContent = '✋ Menunggu telapak';
     }
+  });
 
-    counter.textContent = photos.length + ' / 3';
+  mpCamera = new Camera(video, {
+    onFrame: async () => {
+      if (hands && cameraOn) {
+        await hands.send({ image: video });
+      }
+    },
+    width: 640,
+    height: 480
+  });
+
+  mpCamera.start().catch(() => {
+    gestureStatus.textContent = 'Gesture tidak tersedia';
+  });
 }
 
-function resetPhotos() {
-    photos = [];
-    renderPhotos();
-    captureBtn.disabled = !cameraStream;
-    captureBtn.textContent = '📸 Ambil Foto 1/3';
-    setStatus('Siap untuk sesi foto baru! ✨');
+async function showCountdown(number) {
+  countdown.textContent = number;
+  countdown.classList.add('show');
+  await sleep(750);
+  countdown.classList.remove('show');
 }
 
-async function downloadStrip() {
-    if (photos.length === 0) {
-        setStatus('Ambil foto dulu sebelum mengunduh ya!');
-        return;
+function captureOnePhoto() {
+  const width = video.videoWidth || 640;
+  const height = video.videoHeight || 480;
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+
+  const context = canvas.getContext('2d');
+
+  // Membalik hasil agar seperti cermin.
+  context.translate(width, 0);
+  context.scale(-1, 1);
+  context.filter = filters[filterName] || 'none';
+  context.drawImage(video, 0, 0, width, height);
+  context.filter = 'none';
+
+  return canvas.toDataURL('image/jpeg', 0.93);
+}
+
+async function takePhotoSequence() {
+  if (!cameraOn || takingPhotos) return;
+
+  takingPhotos = true;
+  captureBtn.disabled = true;
+  photos = [];
+  updateCount();
+
+  for (let i = 0; i < 3; i++) {
+    await showCountdown(3);
+    await showCountdown(2);
+    await showCountdown(1);
+
+    photos.push(captureOnePhoto());
+    updateCount();
+    await sleep(700);
+  }
+
+  takingPhotos = false;
+  captureBtn.disabled = false;
+  renderResults();
+}
+
+captureBtn.addEventListener('click', takePhotoSequence);
+
+function updateCount() {
+  photoCount.textContent = photos.length + ' / 3 foto';
+}
+
+function renderResults() {
+  empty.hidden = true;
+  result.hidden = false;
+  thumbnails.innerHTML = '';
+
+  photos.forEach(src => {
+    const img = document.createElement('img');
+    img.src = src;
+    img.alt = 'Foto photobooth';
+    thumbnails.appendChild(img);
+  });
+
+  renderStrip();
+}
+
+function renderStrip() {
+  const width = 600;
+  const padding = 28;
+  const photoHeight = 340;
+  const gap = 16;
+  const top = 90;
+  const bottom = 85;
+  const photoWidth = width - padding * 2;
+
+  strip.width = width;
+  strip.height =
+    top +
+    photos.length * photoHeight +
+    Math.max(0, photos.length - 1) * gap +
+    bottom;
+
+  ctx.fillStyle = colors[frameName];
+  ctx.fillRect(0, 0, strip.width, strip.height);
+
+  if (frameName === 'night') {
+    ctx.fillStyle = '#ffeba9';
+    for (let i = 0; i < 24; i++) {
+      ctx.beginPath();
+      ctx.arc(
+        (i * 89 + 25) % width,
+        (i * 57 + 12) % strip.height,
+        2 + i % 3,
+        0,
+        Math.PI * 2
+      );
+      ctx.fill();
     }
+  }
 
-    setStatus('Sedang menyiapkan hasil foto...');
+  ctx.textAlign = 'center';
+  ctx.fillStyle = textColors[frameName];
+  ctx.font = '700 31px Fredoka, sans-serif';
+  ctx.fillText('SNAP & SMILE', width / 2, 43);
+  ctx.font = '600 15px Nunito, sans-serif';
+  ctx.fillText('little moments, big memories', width / 2, 68);
 
-    const width = 600;
-    const margin = 36;
-    const photoWidth = width - margin * 2;
-    const photoHeight = Math.round(photoWidth * 3 / 4);
-    const gap = 20;
-    const header = 95;
-    const footer = 65;
-    const height = header + photos.length * photoHeight
-        + (photos.length - 1) * gap + footer + margin * 2;
+  let completed = 0;
 
-    const canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
+  photos.forEach((src, index) => {
+    const image = new Image();
 
-    const ctx = canvas.getContext('2d');
+    image.onload = () => {
+      const y = top + index * (photoHeight + gap);
 
-    const colors = {
-        classic: '#a8dfc4',
-        midnight: '#263b52',
-        lavender: '#d4c8fa',
-        sunshine: '#ffe18a',
-        ocean: '#d8eaf6',
-        mono: '#d7d7d7'
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(
+        padding - 5, y - 5,
+        photoWidth + 10, photoHeight + 10
+      );
+
+      const imageRatio = image.width / image.height;
+      const boxRatio = photoWidth / photoHeight;
+      let sx = 0, sy = 0, sw = image.width, sh = image.height;
+
+      if (imageRatio > boxRatio) {
+        sw = image.height * boxRatio;
+        sx = (image.width - sw) / 2;
+      } else {
+        sh = image.width / boxRatio;
+        sy = (image.height - sh) / 2;
+      }
+
+      ctx.drawImage(
+        image, sx, sy, sw, sh,
+        padding, y, photoWidth, photoHeight
+      );
+
+      if (sticker) {
+        ctx.textAlign = 'right';
+        ctx.font = '42px serif';
+        ctx.fillText(sticker, width - padding - 9, y + 45);
+        ctx.textAlign = 'left';
+        ctx.fillText(sticker, padding + 8, y + photoHeight - 12);
+      }
+
+      completed++;
+
+      if (completed === photos.length) {
+        ctx.fillStyle = textColors[frameName];
+        ctx.textAlign = 'center';
+        ctx.font = '700 20px Fredoka, sans-serif';
+        ctx.fillText('✦ PHOTOBOOTH ✦', width / 2, strip.height - 38);
+        ctx.font = '12px Nunito, sans-serif';
+        ctx.fillText(
+          new Date().toLocaleDateString('id-ID'),
+          width / 2, strip.height - 17
+        );
+      }
     };
 
-    ctx.fillStyle = colors[theme] || colors.classic;
-    ctx.fillRect(0, 0, width, height);
-
-    const dark = theme === 'midnight' ? '#ffffff' : '#243b53';
-    ctx.fillStyle = dark;
-    ctx.textAlign = 'center';
-    ctx.font = '900 29px sans-serif';
-    ctx.fillText('✦ BEST DAY EVER ✦', width / 2, margin + 25);
-
-    ctx.font = 'bold 15px sans-serif';
-    ctx.fillText('MY LITTLE PHOTOBOOTH', width / 2, margin + 55);
-
-    try {
-        for (let i = 0; i < photos.length; i++) {
-            const img = new Image();
-            img.src = photos[i];
-            await new Promise((resolve, reject) => {
-                img.onload = resolve;
-                img.onerror = reject;
-            });
-
-            const y = margin + header + i * (photoHeight + gap);
-
-            ctx.fillStyle = '#243b53';
-            ctx.fillRect(margin - 3, y - 3, photoWidth + 6, photoHeight + 6);
-
-            ctx.save();
-            if (theme === 'mono') ctx.filter = 'grayscale(1)';
-            ctx.drawImage(img, margin, y, photoWidth, photoHeight);
-            ctx.restore();
-
-            ctx.font = '32px sans-serif';
-            ctx.textAlign = 'right';
-            ctx.fillText(sticker, width - margin - 8, y + photoHeight - 8);
-        }
-
-        ctx.fillStyle = dark;
-        ctx.textAlign = 'center';
-        ctx.font = 'bold 17px sans-serif';
-        ctx.fillText('SNAP & SMILE • 2026', width / 2, height - margin);
-
-        const link = document.createElement('a');
-        link.download = 'snap-and-smile-photobooth.png';
-        link.href = canvas.toDataURL('image/png');
-        link.click();
-
-        setStatus('Berhasil! Foto photobooth siap disimpan 🎉');
-    } catch (error) {
-        setStatus('Gagal membuat gambar. Silakan coba lagi.');
-        console.error(error);
-    }
+    image.src = src;
+  });
 }
 
-renderPhotos();
+document.getElementById('download').addEventListener('click', () => {
+  if (!photos.length) return;
+
+  const link = document.createElement('a');
+  link.download = 'snap-smile-photostrip.png';
+  link.href = strip.toDataURL('image/png');
+  link.click();
+});
+
+document.getElementById('retake').addEventListener('click', () => {
+  photos = [];
+  updateCount();
+  thumbnails.innerHTML = '';
+  result.hidden = true;
+  empty.hidden = false;
+});
+
+window.addEventListener('beforeunload', () => {
+  if (stream) stream.getTracks().forEach(track => track.stop());
+});
 </script>
 </body>
 </html>
-HTML
-    )->header('Content-Type', 'text/html; charset=UTF-8');
-});
