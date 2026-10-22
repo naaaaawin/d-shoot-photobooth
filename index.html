@@ -10,6 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Pacifico&display=swap" rel="stylesheet">
 
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/selfie_segmentation.js"></script>
 
 <style>
 :root {
@@ -510,6 +511,7 @@ footer {
 
       <div class="camera-stage" id="cameraStage">
         <video id="video" autoplay muted playsinline class="hidden"></video>
+        <canvas id="previewCanvas" class="hidden"></canvas>
         <div class="camera-placeholder" id="placeholder">
           <div class="emoji">📷</div>
           <strong>Your photo moment starts here</strong>
@@ -653,6 +655,121 @@ let selectedBackground = "none";
 let photos = [];
 let toastTimer = null;
 
+const previewCanvas = document.getElementById("previewCanvas");
+const previewCtx = previewCanvas.getContext("2d");
+
+let selfieSegmenter = null;
+let segmentationLoopActive = false;
+let segmentationBusy = false;
+let previewReady = false;
+
+function drawVirtualBackground(ctx, w, h) {
+  const gradients = {
+    none: ["#dce9ff", "#f9e4ed"],
+    sky: ["#80caff", "#d9f3ff"],
+    sunset: ["#ff8b78", "#a58bdf"],
+    flower: ["#b7e7c5", "#f7cddd"],
+    mint: ["#a8e6cf", "#e6ffdf"],
+    night: ["#17203d", "#d48fae"],
+    peach: ["#ffd3ad", "#ffb3a7"],
+    lilac: ["#c9b6ff", "#f0d9ff"]
+  };
+
+  const colors = gradients[selectedBackground] || gradients.none;
+  const gradient = ctx.createLinearGradient(0, 0, w, h);
+  gradient.addColorStop(0, colors[0]);
+  gradient.addColorStop(1, colors[1]);
+
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, w, h);
+
+  if (selectedBackground === "flower") {
+    const flowers = [
+      [0.15, 0.2, 42], [0.82, 0.25, 34],
+      [0.15, 0.8, 36], [0.86, 0.78, 48]
+    ];
+
+    flowers.forEach(([x, y, r]) => {
+      ctx.fillStyle = "#fff6d8aa";
+      ctx.beginPath();
+      ctx.arc(w * x, h * y, r, 0, Math.PI * 2);
+      ctx.fill();
+    });
+  }
+}
+
+async function setupVirtualBackground() {
+  if (typeof SelfieSegmentation === "undefined") {
+    showToast("Virtual background tidak tersedia. Coba refresh website.");
+    return;
+  }
+
+  selfieSegmenter = new SelfieSegmentation({
+    locateFile: file =>
+      `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`
+  });
+
+  selfieSegmenter.setOptions({
+    modelSelection: 1
+  });
+
+  selfieSegmenter.onResults(results => {
+    const w = results.image.width;
+    const h = results.image.height;
+
+    if (previewCanvas.width !== w || previewCanvas.height !== h) {
+      previewCanvas.width = w;
+      previewCanvas.height = h;
+    }
+
+    const ctx = previewCtx;
+    ctx.clearRect(0, 0, w, h);
+
+    // Gambar orang terlebih dahulu.
+    ctx.drawImage(results.image, 0, 0, w, h);
+
+    // Sisakan area orang berdasarkan mask segmentasi.
+    ctx.globalCompositeOperation = "destination-in";
+    ctx.drawImage(results.segmentationMask, 0, 0, w, h);
+
+    // Letakkan background pilihan di belakang orang.
+    ctx.globalCompositeOperation = "destination-over";
+    drawVirtualBackground(ctx, w, h);
+
+    ctx.globalCompositeOperation = "source-over";
+
+    previewCanvas.classList.remove("hidden");
+    video.classList.add("hidden");
+    previewReady = true;
+  });
+
+  segmentationLoopActive = true;
+  runSegmentationLoop();
+}
+
+async function runSegmentationLoop() {
+  while (segmentationLoopActive) {
+    if (
+      selfieSegmenter &&
+      video.readyState >= 2 &&
+      !segmentationBusy
+    ) {
+      segmentationBusy = true;
+
+      try {
+        await selfieSegmenter.send({ image: video });
+      } catch (error) {
+        console.warn("Segmentasi gagal:", error);
+      }
+
+      segmentationBusy = false;
+    }
+
+    await new Promise(resolve => setTimeout(resolve, 50));
+  }
+}
+
+
 const filters = {
   original: "none",
   mono: "grayscale(1) contrast(1.65) brightness(.88)",
@@ -694,6 +811,7 @@ function showToast(message) {
 }
 
 function setFilter(name) {
+  previewCanvas.style.filter = filters[name];
   selectedFilter = name;
   video.style.setProperty("--unused", "0");
   video.style.filter = filters[name];
@@ -767,8 +885,10 @@ async function startCamera() {
     startBtn.textContent = "✓ Kamera Aktif";
     startBtn.disabled = false;
 
+    await setupVirtualBackground();
     await setupHandDetection();
-    showToast("Kamera aktif! Pilih filter dan mulai berfoto 📸");
+
+    showToast("Kamera aktif! Pilih background dan filter favorit ✨");
   } catch (error) {
     console.error(error);
     stream = null;
@@ -920,8 +1040,9 @@ async function takePhotoSequence() {
 }
 
 function captureFrame(filterValue) {
-  const width = video.videoWidth || 1280;
-  const height = video.videoHeight || 960;
+  const source = previewReady ? previewCanvas : video;
+  const width = source.videoWidth || source.width || 1280;
+  const height = source.videoHeight || source.height || 960;
 
   const canvas = document.createElement("canvas");
   canvas.width = 700;
@@ -946,7 +1067,7 @@ function captureFrame(filterValue) {
     sy = (height - sh) / 2;
   }
 
-  ctx.drawImage(video, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+  ctx.drawImage(source, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
   ctx.restore();
 
   return canvas;
@@ -959,13 +1080,15 @@ function renderPhotostrip() {
   if (!photos.length) return;
 
   const width = 700;
-  const photoHeight = 525;
   const margin = 34;
-  const gap = 20;
-  const headerHeight = 120;
-  const footerHeight = 115;
-  const height = margin * 2 + headerHeight + photos.length * photoHeight +
-                 (photos.length - 1) * gap + footerHeight;
+  const photoWidth = width - margin * 2;
+  const photoHeight = Math.round(photoWidth * 3 / 4);
+  const gap = 16;
+  const headerHeight = 110;
+  const footerHeight = 95;
+  const height = margin * 2 + headerHeight +
+    photos.length * photoHeight +
+    (photos.length - 1) * gap + footerHeight;
 
   resultCanvas.width = width;
   resultCanvas.height = height;
@@ -976,55 +1099,58 @@ function renderPhotostrip() {
   ctx.fillStyle = frame.bg;
   ctx.fillRect(0, 0, width, height);
 
-  // Header
   ctx.fillStyle = frame.ink;
   ctx.textAlign = "center";
   ctx.font = "bold 24px 'DM Sans', sans-serif";
   ctx.fillText("D'SHOOT PHOTOBOOTH", width / 2, margin + 36);
 
   ctx.font = "14px 'DM Sans', sans-serif";
-  ctx.fillText("little moments, big memories", width / 2, margin + 67);
+  ctx.fillText("little moments, big memories", width / 2, margin + 65);
 
-  // Decorative header marks
   ctx.font = "23px sans-serif";
-  ctx.fillText("✦  ♡  ✦", width / 2, margin + 99);
+  ctx.fillText("✦ ♡ ✦", width / 2, margin + 94);
 
   let y = margin + headerHeight;
 
   photos.forEach((photo, index) => {
-    // White photo border
     ctx.fillStyle = "#ffffff";
-    ctx.fillRect(margin - 7, y - 7, width - margin * 2 + 14, photoHeight + 14);
+    ctx.fillRect(
+      margin - 6, y - 6,
+      photoWidth + 12, photoHeight + 12
+    );
 
-    ctx.drawImage(photo, margin, y, width - margin * 2, photoHeight);
+    // Ukuran foto tetap proporsional, tidak ditarik.
+    ctx.drawImage(
+      photo, margin, y, photoWidth, photoHeight
+    );
 
-    // Number tag
     ctx.fillStyle = frame.bg;
-    ctx.fillRect(margin + 10, y + 10, 49, 31);
+    ctx.fillRect(margin + 10, y + 10, 45, 28);
+
     ctx.fillStyle = frame.ink;
-    ctx.font = "bold 15px 'DM Sans', sans-serif";
+    ctx.font = "bold 14px 'DM Sans', sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText("0" + (index + 1), margin + 34, y + 31);
+    ctx.fillText("0" + (index + 1), margin + 32, y + 29);
 
     y += photoHeight + gap;
   });
 
-  // Footer
   ctx.fillStyle = frame.ink;
   ctx.textAlign = "center";
-  ctx.font = "bold 19px 'DM Sans', sans-serif";
-  ctx.fillText("THAT'S A WRAP! ✨", width / 2, height - margin - 53);
+  ctx.font = "bold 18px 'DM Sans', sans-serif";
+  ctx.fillText("THAT'S A WRAP! ✨", width / 2, height - margin - 42);
 
   ctx.font = "13px 'DM Sans', sans-serif";
-  ctx.fillText(new Date().toLocaleDateString("id-ID", {
-    day: "numeric", month: "short", year: "numeric"
-  }), width / 2, height - margin - 25);
+  ctx.fillText(
+    new Date().toLocaleDateString("id-ID"),
+    width / 2, height - margin - 17
+  );
 
   emptyResult.classList.add("hidden");
   resultCanvas.classList.remove("hidden");
   downloadBtn.disabled = false;
   retakeBtn.disabled = false;
-  resultStatus.textContent = "3 foto siap ✓";
+  resultStatus.textContent = photos.length + " foto siap ✓";
 }
 
 downloadBtn.addEventListener("click", () => {
