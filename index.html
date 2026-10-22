@@ -3,716 +3,754 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Snap & Smile Photobooth</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>D'SHOOT PHOTOBOOTH</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Pacifico&display=swap" rel="stylesheet">
 
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
 
 <style>
 :root {
-  --ink: #29364b;
-  --mint: #c9eee5;
-  --blue: #d4e7ff;
-  --yellow: #ffeba9;
-  --purple: #e4d9ff;
-  --peach: #f8ddd2;
-  --paper: #fffdf8;
+  --ink: #202a38;
+  --muted: #758194;
+  --line: #e7eaf0;
+  --accent: #5267db;
+  --paper: #ffffff;
+  --bg: #f4f6fb;
 }
 
 * { box-sizing: border-box; }
 
 body {
   margin: 0;
-  color: var(--ink);
-  font-family: 'Nunito', sans-serif;
   background:
-    radial-gradient(circle at 10% 5%, #dcf6ed, transparent 30%),
-    radial-gradient(circle at 90% 10%, #eee5ff, transparent 28%),
-    #f8fafc;
+    radial-gradient(circle at 5% 5%, #e0e9ff 0, transparent 25%),
+    radial-gradient(circle at 95% 10%, #ffe9d8 0, transparent 24%),
+    var(--bg);
+  color: var(--ink);
+  font-family: "DM Sans", sans-serif;
 }
 
 button, select { font: inherit; }
 
 button {
   cursor: pointer;
-  border: none;
-  border-radius: 13px;
-  padding: 11px 15px;
-  font-weight: 800;
-  transition: .2s;
+  transition: transform .18s, opacity .18s, box-shadow .18s;
 }
 
 button:hover { transform: translateY(-2px); }
-button:disabled { opacity: .45; cursor: not-allowed; }
-
-.container {
-  max-width: 1120px;
-  margin: auto;
-  padding: 22px 16px 40px;
-}
+button:disabled { opacity: .45; cursor: not-allowed; transform: none; }
 
 header {
+  padding: 23px 6%;
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 25px;
-}
-
-.brand {
-  display: flex;
-  gap: 12px;
-  align-items: center;
+  border-bottom: 1px solid #e8ebf1;
+  background: rgba(255,255,255,.8);
+  backdrop-filter: blur(14px);
 }
 
 .logo {
-  width: 50px;
-  height: 50px;
-  display: grid;
-  place-items: center;
-  border-radius: 17px;
-  background: var(--yellow);
+  font-family: Pacifico, cursive;
   font-size: 27px;
-  box-shadow: 0 5px 0 #eed58a;
+  color: var(--accent);
 }
 
-h1, h2, h3, h4, p { margin-top: 0; }
+.logo span { color: #f18c68; }
 
-h1 {
-  font: 700 25px 'Fredoka', sans-serif;
-  margin-bottom: 2px;
-}
-
-.subtitle {
-  color: #748096;
+.header-tag {
   font-size: 12px;
-}
-
-.status {
-  padding: 9px 13px;
+  color: #667085;
+  background: #fff;
+  border: 1px solid var(--line);
   border-radius: 30px;
-  background: white;
-  font-size: 12px;
-  font-weight: 800;
+  padding: 9px 13px;
 }
 
-.hero { margin-bottom: 22px; }
-
-.hero small {
-  letter-spacing: 2px;
-  font-weight: 800;
-  color: #6c8494;
+main {
+  max-width: 1240px;
+  padding: 35px 22px 55px;
+  margin: auto;
 }
 
-.hero h2 {
-  font: 600 clamp(28px, 5vw, 42px) 'Fredoka', sans-serif;
-  margin: 8px 0;
+.hero { text-align: center; margin-bottom: 28px; }
+
+.hero h1 {
+  font-size: clamp(29px, 4vw, 45px);
+  margin: 0 0 10px;
+  letter-spacing: -1.7px;
 }
+
+.hero h1 span { color: var(--accent); }
 
 .hero p {
-  color: #748096;
-  line-height: 1.6;
-  max-width: 580px;
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.7;
   font-size: 14px;
 }
 
-.layout {
+.workspace {
   display: grid;
-  grid-template-columns: 1.2fr .8fr;
-  gap: 18px;
+  grid-template-columns: minmax(0, 1.15fr) minmax(310px, .85fr);
+  gap: 23px;
   align-items: start;
 }
 
 .panel {
-  background: rgba(255,255,255,.94);
-  border: 1px solid #e0e7ed;
+  background: var(--paper);
+  border: 1px solid #e9ecf2;
   border-radius: 23px;
-  padding: 17px;
-  margin-bottom: 17px;
-  box-shadow: 0 12px 35px #29364b0a;
+  padding: 22px;
+  box-shadow: 0 12px 38px rgba(36,48,80,.055);
 }
 
-.panel h3 {
-  font: 600 19px 'Fredoka', sans-serif;
-  margin-bottom: 14px;
+.panel-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
 }
 
-.camera {
+.panel-heading h2 { font-size: 17px; margin: 0; }
+
+.status {
+  color: #8b94a4;
+  font-size: 11px;
+  background: #f3f5f9;
+  padding: 7px 10px;
+  border-radius: 20px;
+}
+
+.camera-stage {
   position: relative;
   overflow: hidden;
-  background: #202c3e;
   border-radius: 17px;
-  aspect-ratio: 4/3;
+  background: #dce5f4;
+  min-height: 260px;
+  aspect-ratio: 4 / 3;
   display: grid;
   place-items: center;
+  isolation: isolate;
 }
 
-video {
+.camera-stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--camera-bg, linear-gradient(135deg,#dce9ff,#f9e4ed));
+}
+
+.camera-stage video {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
   transform: scaleX(-1);
-  filter: none;
+  filter: var(--live-filter, none);
 }
 
-.placeholder {
+.camera-stage video.hidden { display: none; }
+
+.camera-stage video,
+.camera-stage canvas { position: absolute; inset: 0; }
+
+.camera-stage #previewCanvas {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1);
+}
+
+.camera-placeholder {
   position: absolute;
+  z-index: 2;
   inset: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  color: white;
   text-align: center;
   padding: 20px;
-  background: linear-gradient(135deg, #435d7c, #202c3e);
+  background: linear-gradient(135deg,rgba(224,233,255,.8),rgba(255,235,224,.72));
 }
 
-.placeholder .emoji { font-size: 48px; }
+.camera-placeholder .emoji { font-size: 43px; margin-bottom: 10px; }
 
-.placeholder p {
-  font-size: 12px;
-  color: #dce5ef;
+.camera-placeholder strong { font-size: 15px; }
+
+.camera-placeholder p {
   max-width: 260px;
-  line-height: 1.5;
-  margin: 0;
+  font-size: 12px;
+  line-height: 1.7;
+  color: #657187;
 }
 
-.camera-label, .gesture-label {
+.hidden { display: none !important; }
+
+.camera-decoration {
   position: absolute;
-  top: 10px;
-  padding: 7px 10px;
-  border-radius: 30px;
-  font-size: 10px;
-  font-weight: 800;
-}
-
-.camera-label {
-  left: 10px;
-  background: #fffdf0e8;
-}
-
-.gesture-label {
-  right: 10px;
-  color: white;
-  background: #172438d9;
-}
-
-.countdown {
-  display: none;
-  position: absolute;
-  inset: 0;
-  place-items: center;
-  color: white;
-  font: 700 100px 'Fredoka', sans-serif;
-  background: #10182755;
-  text-shadow: 0 5px 25px #0008;
-}
-
-.countdown.show { display: grid; }
-
-.controls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 12px;
-}
-
-.primary { background: var(--ink); color: white; }
-.mint { background: var(--mint); color: var(--ink); }
-.yellow { background: var(--yellow); color: var(--ink); }
-.blue { background: var(--blue); color: var(--ink); }
-.purple { background: var(--purple); color: var(--ink); }
-.light { background: #f0f3f7; color: var(--ink); }
-
-.controls .primary { flex: 1; }
-
-.note {
-  margin-top: 12px;
-  padding: 12px;
+  z-index: 3;
+  inset: 12px;
+  border: 1px solid rgba(255,255,255,.6);
   border-radius: 12px;
-  background: #f3f6fa;
-  color: #65738a;
-  font-size: 11px;
-  line-height: 1.6;
+  pointer-events: none;
 }
 
-.section { margin-top: 20px; }
+.camera-decoration::after {
+  content: "D'SHOOT PHOTOBOOTH";
+  position: absolute;
+  bottom: 8px;
+  left: 10px;
+  font-size: 9px;
+  letter-spacing: 2px;
+  font-weight: 800;
+  color: white;
+  text-shadow: 0 1px 5px #3338;
+}
+
+.camera-controls {
+  display: flex;
+  gap: 9px;
+  margin-top: 13px;
+}
+
+.btn {
+  border: 0;
+  border-radius: 12px;
+  padding: 12px 15px;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.btn-primary {
+  color: white;
+  background: var(--accent);
+  box-shadow: 0 6px 14px #5267db35;
+}
+
+.btn-dark { color: white; background: #273246; }
+.btn-light { color: #4e5c72; background: #f0f2f7; }
+
+.camera-controls .btn { flex: 1; }
+
+.tip {
+  margin-top: 13px;
+  font-size: 11px;
+  color: #8791a2;
+  line-height: 1.7;
+}
+
+.section { margin-top: 25px; }
 
 .section-title {
+  font-size: 13px;
+  font-weight: 800;
+  margin-bottom: 12px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 10px;
+  justify-content: space-between;
 }
 
-.section-title h4 {
-  font: 600 16px 'Fredoka', sans-serif;
-  margin: 0;
+.section-title small {
+  color: #8a94a5;
+  font-size: 10px;
+  font-weight: 500;
 }
 
-.muted { color: #7c8798; font-size: 11px; }
-
-.filters {
+.filter-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  gap: 9px;
 }
 
-.filter {
+.filter-btn {
   padding: 0;
-  border: 2px solid transparent;
   overflow: hidden;
-  background: #f2f5f8;
-  text-align: left;
+  background: white;
+  border: 2px solid #edf0f5;
+  border-radius: 13px;
+  color: #586478;
 }
 
-.filter.active, .frame.active {
-  border: 2px solid #7185bd;
-  background: #f3f0ff;
+.filter-btn.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px #5267db17;
+  color: var(--accent);
 }
 
-.sample {
-  height: 48px;
+.filter-sample {
+  height: 62px;
   display: grid;
   place-items: center;
-  background: linear-gradient(135deg, #b9d7f5, #f5d5c8);
-  font-size: 22px;
+  font-size: 27px;
+  background: linear-gradient(135deg,#dbe7ff,#ffe6dc);
 }
 
-.filter span {
+.filter-sample.original { filter: none; }
+.filter-sample.mono { filter: grayscale(1) contrast(1.5) brightness(.85); }
+.filter-sample.vintage { filter: sepia(.9) contrast(1.25) saturate(.8); }
+.filter-sample.warm { filter: sepia(.3) saturate(2.2) contrast(1.15) brightness(1.04); }
+.filter-sample.dreamy { filter: saturate(2) brightness(1.17) contrast(.82); }
+.filter-sample.cool { filter: hue-rotate(25deg) saturate(1.9) contrast(1.2); }
+.filter-sample.y2k { filter: saturate(2.8) contrast(1.22) brightness(1.06) hue-rotate(-8deg); }
+.filter-sample.drama { filter: grayscale(.7) contrast(2) brightness(.82); }
+.filter-sample.rose { filter: sepia(.2) hue-rotate(300deg) saturate(1.8) contrast(1.1); }
+
+.filter-name {
   display: block;
-  padding: 7px;
+  padding: 9px 3px;
   font-size: 11px;
+  font-weight: 700;
 }
 
-.frames {
+.options-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
+  grid-template-columns: repeat(4, minmax(0,1fr));
+  gap: 9px;
 }
 
-.frame {
-  background: #f3f5f8;
-  border: 2px solid transparent;
-  padding: 8px 4px;
-  font-size: 11px;
+.option-btn {
+  background: white;
+  border: 2px solid #edf0f5;
+  border-radius: 11px;
+  padding: 6px 4px;
+  color: #586478;
+  font-size: 10px;
+  font-weight: 700;
 }
 
-.frame-preview {
-  height: 48px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 3px;
-  border-radius: 7px;
+.option-btn.active {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.option-preview {
+  height: 32px;
+  border-radius: 6px;
   margin-bottom: 6px;
 }
 
-.frame-preview i {
-  width: 20px;
-  height: 34px;
-  border: 2px solid white;
-  border-radius: 4px;
-  background: linear-gradient(145deg, #b9d7f5, #e3d8ff);
-}
+.bg-none { background: linear-gradient(135deg,#e0eaff,#f9dfe9); }
+.bg-sky { background: linear-gradient(135deg,#80caff,#d9f3ff); }
+.bg-sunset { background: linear-gradient(135deg,#ff8b78,#ffd59a,#a58bdf); }
+.bg-flower { background: radial-gradient(circle at 20% 30%,#fff4b8 0 10%,transparent 11%),radial-gradient(circle at 70% 65%,#ffc6d7 0 13%,transparent 14%),linear-gradient(135deg,#b7e7c5,#f7cddd); }
+.bg-mint { background: linear-gradient(135deg,#a8e6cf,#e6ffdf); }
+.bg-night { background: linear-gradient(135deg,#17203d,#60558d,#d48fae); }
+.bg-peach { background: linear-gradient(135deg,#ffd3ad,#ffb3a7); }
+.bg-lilac { background: linear-gradient(135deg,#c9b6ff,#f0d9ff); }
 
-.stickers {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 7px;
-}
-
-.sticker {
-  width: 40px;
-  height: 40px;
-  padding: 0;
-  background: #f1f4f7;
-  border: 1px solid #e0e7ed;
-  font-size: 21px;
-}
-
-.sticker.active {
-  background: var(--yellow);
-  border-color: #e2c65f;
-}
-
-.empty {
-  min-height: 190px;
-  border: 2px dashed #dce4eb;
-  border-radius: 16px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 20px;
-  color: #718096;
-}
-
-.empty .big { font-size: 42px; }
-
-.empty h4 {
-  color: var(--ink);
-  font: 600 17px 'Fredoka', sans-serif;
-  margin: 8px 0;
-}
-
-.empty p { font-size: 11px; line-height: 1.5; }
-
-.thumbnails {
+.frame-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  gap: 9px;
 }
 
-.thumbnails img {
-  width: 100%;
-  aspect-ratio: 3/4;
-  object-fit: cover;
-  border-radius: 10px;
+.frame-btn {
+  background: white;
+  border: 2px solid #edf0f5;
+  border-radius: 11px;
+  padding: 8px;
+  color: #586478;
+  font-size: 10px;
+  font-weight: 700;
 }
 
-.strip-wrap {
-  background: #f0f3f7;
-  border-radius: 14px;
-  padding: 9px;
+.frame-btn.active {
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
-#strip {
+.frame-preview {
+  height: 39px;
+  margin-bottom: 7px;
+  border-radius: 5px;
+  border: 5px solid #cdebdc;
+  background: white;
+}
+
+.frame-mint { border-color: #bfe8d7; }
+.frame-blue { border-color: #b9d6ff; }
+.frame-yellow { border-color: #ffe5a0; }
+.frame-purple { border-color: #d9c4ff; }
+.frame-peach { border-color: #ffcbb6; }
+.frame-night { border-color: #29304b; }
+
+.right-panel { min-width: 0; }
+
+.result-info {
+  background: #f7f8fc;
+  border-radius: 13px;
+  padding: 13px;
+  font-size: 11px;
+  color: #788397;
+  line-height: 1.7;
+  margin-bottom: 16px;
+}
+
+.result-info strong { color: #354056; }
+
+.strip-area {
+  background: #edf0f6;
+  border-radius: 16px;
+  padding: 18px;
+  display: flex;
+  justify-content: center;
+  min-height: 300px;
+  overflow: auto;
+}
+
+#resultCanvas {
   display: block;
   width: 100%;
+  max-width: 300px;
   height: auto;
-  border-radius: 8px;
+  align-self: flex-start;
+  box-shadow: 0 8px 24px #26344b20;
+  border-radius: 3px;
 }
 
-.result-actions {
+.empty-result {
+  min-height: 260px;
   display: flex;
-  gap: 8px;
-  margin-top: 10px;
-}
-
-.result-actions button { flex: 1; }
-
-.guide {
-  display: grid;
-  gap: 12px;
-}
-
-.guide-item {
-  display: flex;
-  gap: 10px;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: #909aab;
+  text-align: center;
   font-size: 12px;
-  color: #718096;
-  line-height: 1.5;
+  line-height: 1.8;
 }
 
-.guide-item strong { color: var(--ink); }
+.empty-result span { font-size: 43px; margin-bottom: 10px; }
 
-.num {
-  flex-shrink: 0;
+.result-buttons {
   display: grid;
-  place-items: center;
-  width: 27px;
-  height: 27px;
-  border-radius: 9px;
-  background: var(--blue);
-  color: var(--ink);
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+  margin-top: 14px;
+}
+
+.result-buttons .btn { padding: 13px 7px; }
+
+.countdown {
+  position: absolute;
+  z-index: 5;
+  font-size: clamp(60px,12vw,100px);
   font-weight: 800;
+  color: white;
+  text-shadow: 0 5px 30px #0008;
+  pointer-events: none;
+}
+
+.toast {
+  position: fixed;
+  z-index: 20;
+  bottom: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #263246;
+  color: white;
+  border-radius: 13px;
+  padding: 13px 18px;
+  font-size: 12px;
+  box-shadow: 0 10px 30px #18223830;
+  max-width: calc(100% - 30px);
+  text-align: center;
 }
 
 footer {
   text-align: center;
-  color: #8793a5;
+  padding: 25px;
+  color: #929bad;
   font-size: 11px;
-  padding: 15px;
 }
 
-@media(max-width: 780px) {
-  .layout { grid-template-columns: 1fr; }
+@media(max-width:850px) {
+  .workspace { grid-template-columns: 1fr; }
+  .right-panel { order: 2; }
 }
 
-@media(max-width: 480px) {
-  .container { padding: 14px 11px; }
-  .panel { padding: 12px; }
-  .status { font-size: 10px; }
+@media(max-width:450px) {
+  header { padding: 17px 5%; }
+  .logo { font-size: 22px; }
+  .header-tag { font-size: 10px; }
+  main { padding: 25px 12px 35px; }
+  .panel { padding: 15px; border-radius: 18px; }
+  .filter-grid { gap: 6px; }
+  .filter-name { font-size: 10px; }
+  .filter-sample { height: 53px; }
 }
 </style>
 </head>
 
 <body>
-<div class="container">
-
 <header>
-  <div class="brand">
-    <div class="logo">📸</div>
-    <div>
-      <h1>Snap & Smile</h1>
-      <div class="subtitle">your little photo corner ✦</div>
-    </div>
-  </div>
-  <div class="status" id="status">🟡 Kamera standby</div>
+  <div class="logo">D'<span>SHOOT</span></div>
+  <div class="header-tag">✦ YOUR MINI PHOTO STUDIO</div>
 </header>
 
-<section class="hero">
-  <small>✦ MAKE A LITTLE MEMORY</small>
-  <h2>Strike a pose, save the moment!</h2>
-  <p>Pilih filter favoritmu, tunjukkan telapak tangan untuk memulai hitung mundur, lalu simpan photostrip lucumu.</p>
-</section>
-
-<main class="layout">
-  <section class="panel">
-    <h3>01 / Camera studio</h3>
-
-    <div class="camera">
-      <video id="video" autoplay muted playsinline></video>
-      <div class="placeholder" id="placeholder">
-        <div class="emoji">📷</div>
-        <strong>Kamera siap saat kamu siap!</strong>
-        <p>Tekan tombol aktifkan kamera, lalu izinkan akses kamera pada browser.</p>
-      </div>
-      <div class="camera-label">● LIVE PREVIEW</div>
-      <div class="gesture-label" id="gestureStatus">✋ Gesture standby</div>
-      <div class="countdown" id="countdown"></div>
-    </div>
-
-    <div class="controls">
-      <button class="primary" id="start">Aktifkan kamera</button>
-      <button class="mint" id="capture" disabled>📸 Ambil 3 foto</button>
-      <button class="light" id="stop" disabled>Matikan kamera</button>
-    </div>
-
-    <div class="note" id="gestureNote">
-      <strong>Mode otomatis:</strong> buka telapak tangan menghadap kamera selama sekitar 1 detik untuk memulai sesi foto. Gesture menggunakan MediaPipe Hands.
-    </div>
-
-    <div class="section">
-      <div class="section-title">
-        <h4>02 / Pilih filter</h4>
-        <span class="muted">Live filter</span>
-      </div>
-      <div class="filters">
-        <button class="filter active" data-filter="none">
-          <div class="sample">🌤️</div><span>Original</span>
-        </button>
-        <button class="filter" data-filter="mono">
-          <div class="sample" style="filter:grayscale(1)">◐</div><span>Black & white</span>
-        </button>
-        <button class="filter" data-filter="vintage">
-          <div class="sample" style="filter:sepia(.65)">🌼</div><span>Vintage</span>
-        </button>
-        <button class="filter" data-filter="warm">
-          <div class="sample" style="filter:sepia(.25) saturate(1.4)">☀️</div><span>Warm</span>
-        </button>
-        <button class="filter" data-filter="dreamy">
-          <div class="sample" style="filter:brightness(1.2) saturate(.7)">☁️</div><span>Dreamy</span>
-        </button>
-        <button class="filter" data-filter="cool">
-          <div class="sample" style="filter:hue-rotate(25deg)">🧊</div><span>Cool</span>
-        </button>
-      </div>
-    </div>
-
-    <div class="section">
-      <div class="section-title">
-        <h4>03 / Pilih frame</h4>
-        <span class="muted">6 desain</span>
-      </div>
-      <div class="frames">
-        <button class="frame active" data-frame="mint">
-          <div class="frame-preview" style="background:#c9eee5"><i></i><i></i><i></i></div>Mint day
-        </button>
-        <button class="frame" data-frame="blue">
-          <div class="frame-preview" style="background:#d4e7ff"><i></i><i></i><i></i></div>Blue sky
-        </button>
-        <button class="frame" data-frame="yellow">
-          <div class="frame-preview" style="background:#ffeba9"><i></i><i></i><i></i></div>Sunshine
-        </button>
-        <button class="frame" data-frame="purple">
-          <div class="frame-preview" style="background:#e4d9ff"><i></i><i></i><i></i></div>Lilac pop
-        </button>
-        <button class="frame" data-frame="peach">
-          <div class="frame-preview" style="background:#f8ddd2"><i></i><i></i><i></i></div>Peachy
-        </button>
-        <button class="frame" data-frame="night">
-          <div class="frame-preview" style="background:#29364b"><i></i><i></i><i></i></div>Night sky
-        </button>
-      </div>
-    </div>
-
-    <div class="section">
-      <div class="section-title">
-        <h4>04 / Pilih stiker</h4>
-        <span class="muted">Tempel di strip</span>
-      </div>
-      <div class="stickers">
-        <button class="sticker active" data-sticker="✨">✨</button>
-        <button class="sticker" data-sticker="⭐">⭐</button>
-        <button class="sticker" data-sticker="🌼">🌼</button>
-        <button class="sticker" data-sticker="🦋">🦋</button>
-        <button class="sticker" data-sticker="🍒">🍒</button>
-        <button class="sticker" data-sticker="☁️">☁️</button>
-        <button class="sticker" data-sticker="💫">💫</button>
-        <button class="sticker" data-sticker="">✕</button>
-      </div>
-    </div>
+<main>
+  <section class="hero">
+    <h1>Make it <span>a moment.</span></h1>
+    <p>Choose your vibe, strike a pose, and let the camera do its thing.</p>
   </section>
 
-  <aside>
+  <div class="workspace">
     <section class="panel">
-      <div class="section-title">
-        <h3>05 / Your photostrip</h3>
-        <span class="muted" id="photoCount">0 / 3 foto</span>
+      <div class="panel-heading">
+        <h2>📸 Camera Studio</h2>
+        <span class="status" id="cameraStatus">Camera belum aktif</span>
       </div>
 
-      <div class="empty" id="empty">
-        <div class="big">🖼️</div>
-        <h4>Foto kamu muncul di sini</h4>
-        <p>Ambil tiga foto untuk membuat photostrip yang bisa diunduh.</p>
-      </div>
-
-      <div id="result" hidden>
-        <div class="thumbnails" id="thumbnails"></div>
-        <div class="section" style="margin-top:16px">
-          <h4>Hasil akhir</h4>
-          <div class="strip-wrap">
-            <canvas id="strip" width="600" height="1200"></canvas>
-          </div>
+      <div class="camera-stage" id="cameraStage">
+        <video id="video" autoplay muted playsinline class="hidden"></video>
+        <div class="camera-placeholder" id="placeholder">
+          <div class="emoji">📷</div>
+          <strong>Your photo moment starts here</strong>
+          <p>Tekan tombol mulai kamera dan izinkan akses kamera browser kamu.</p>
         </div>
-        <div class="result-actions">
-          <button class="primary" id="download">⬇ Unduh PNG</button>
-          <button class="light" id="retake">Ulangi</button>
+        <div class="camera-decoration"></div>
+        <div id="countdown" class="countdown hidden"></div>
+      </div>
+
+      <div class="camera-controls">
+        <button class="btn btn-primary" id="startBtn">✦ Mulai Kamera</button>
+        <button class="btn btn-dark" id="captureBtn" disabled>📸 Foto Manual</button>
+      </div>
+
+      <div class="tip">
+        ✋ <strong>Mode gesture:</strong> tunjukkan telapak tangan terbuka ke kamera untuk memulai sesi 3 foto. Pastikan tangan terlihat jelas dan pencahayaan cukup.
+      </div>
+
+      <div class="section">
+        <div class="section-title">🎨 Choose Your Filter <small>FILTER INTENSITY: HIGH</small></div>
+        <div class="filter-grid" id="filterGrid">
+          <button class="filter-btn active" data-filter="original">
+            <div class="filter-sample original">🌿</div><span class="filter-name">Original</span>
+          </button>
+          <button class="filter-btn" data-filter="mono">
+            <div class="filter-sample mono">🖤</div><span class="filter-name">B&W Drama</span>
+          </button>
+          <button class="filter-btn" data-filter="vintage">
+            <div class="filter-sample vintage">📻</div><span class="filter-name">Vintage</span>
+          </button>
+          <button class="filter-btn" data-filter="warm">
+            <div class="filter-sample warm">🍊</div><span class="filter-name">Orange Pop</span>
+          </button>
+          <button class="filter-btn" data-filter="dreamy">
+            <div class="filter-sample dreamy">☁️</div><span class="filter-name">Dreamy Glow</span>
+          </button>
+          <button class="filter-btn" data-filter="cool">
+            <div class="filter-sample cool">🧊</div><span class="filter-name">Ice Blue</span>
+          </button>
+          <button class="filter-btn" data-filter="y2k">
+            <div class="filter-sample y2k">💿</div><span class="filter-name">Y2K Pop</span>
+          </button>
+          <button class="filter-btn" data-filter="drama">
+            <div class="filter-sample drama">🎬</div><span class="filter-name">Dark Drama</span>
+          </button>
+          <button class="filter-btn" data-filter="rose">
+            <div class="filter-sample rose">🌸</div><span class="filter-name">Rose Pop</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">🌈 Camera Background <small>PILIH WARNA</small></div>
+        <div class="options-grid" id="backgroundGrid">
+          <button class="option-btn active" data-bg="none"><div class="option-preview bg-none"></div>Soft</button>
+          <button class="option-btn" data-bg="sky"><div class="option-preview bg-sky"></div>Sky</button>
+          <button class="option-btn" data-bg="sunset"><div class="option-preview bg-sunset"></div>Sunset</button>
+          <button class="option-btn" data-bg="flower"><div class="option-preview bg-flower"></div>Flower</button>
+          <button class="option-btn" data-bg="mint"><div class="option-preview bg-mint"></div>Mint</button>
+          <button class="option-btn" data-bg="night"><div class="option-preview bg-night"></div>Night</button>
+          <button class="option-btn" data-bg="peach"><div class="option-preview bg-peach"></div>Peach</button>
+          <button class="option-btn" data-bg="lilac"><div class="option-preview bg-lilac"></div>Lilac</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">🖼️ Photostrip Frame <small>3 FOTO</small></div>
+        <div class="frame-grid" id="frameGrid">
+          <button class="frame-btn active" data-frame="mint"><div class="frame-preview frame-mint"></div>Mint</button>
+          <button class="frame-btn" data-frame="blue"><div class="frame-preview frame-blue"></div>Baby Blue</button>
+          <button class="frame-btn" data-frame="yellow"><div class="frame-preview frame-yellow"></div>Butter</button>
+          <button class="frame-btn" data-frame="purple"><div class="frame-preview frame-purple"></div>Lavender</button>
+          <button class="frame-btn" data-frame="peach"><div class="frame-preview frame-peach"></div>Peach</button>
+          <button class="frame-btn" data-frame="night"><div class="frame-preview frame-night"></div>Midnight</button>
         </div>
       </div>
     </section>
 
-    <section class="panel">
-      <h3>Gesture guide ✋</h3>
-      <div class="guide">
-        <div class="guide-item"><span class="num">1</span><div><strong>Aktifkan kamera</strong><br>Berikan izin kamera pada browser.</div></div>
-        <div class="guide-item"><span class="num">2</span><div><strong>Buka telapak tangan</strong><br>Arahkan telapak tangan ke kamera sampai terdeteksi.</div></div>
-        <div class="guide-item"><span class="num">3</span><div><strong>Pose dan senyum!</strong><br>Hitung mundur akan mengambil 3 foto.</div></div>
+    <section class="panel right-panel">
+      <div class="panel-heading">
+        <h2>🪄 Your Photostrip</h2>
+        <span class="status" id="resultStatus">Belum ada foto</span>
       </div>
-      <div class="note">Jika gesture tidak terbaca, gunakan tombol “Ambil 3 foto”. Kamera harus dibuka melalui HTTPS atau localhost.</div>
+
+      <div class="result-info">
+        <strong>HOW TO USE</strong><br>
+        1. Nyalakan kamera dan pilih filter favorit.<br>
+        2. Tekan Foto Manual atau tunjukkan telapak tangan.<br>
+        3. Tunggu 3 foto selesai, lalu download hasilnya.
+      </div>
+
+      <div class="strip-area" id="stripArea">
+        <div class="empty-result" id="emptyResult">
+          <span>🎞️</span>
+          Your photostrip will appear here.<br>
+          Let's make some memories!
+        </div>
+        <canvas id="resultCanvas" class="hidden" width="700" height="1850"></canvas>
+      </div>
+
+      <div class="result-buttons">
+        <button class="btn btn-primary" id="downloadBtn" disabled>⬇ Download PNG</button>
+        <button class="btn btn-light" id="retakeBtn" disabled>↻ Take Again</button>
+      </div>
+
+      <div class="tip">
+        ✨ Hasil foto disusun menjadi satu photostrip vertikal. Filter yang dipilih saat sesi pemotretan akan digunakan untuk semua foto dalam sesi tersebut.
+      </div>
     </section>
-  </aside>
+  </div>
 </main>
 
-<footer>Made for little memories ✦ Snap & Smile Photobooth</footer>
-</div>
+<footer>Made with ✦ D'SHOOT PHOTOBOOTH</footer>
+<div id="toast" class="toast hidden"></div>
 
 <script>
-const video = document.getElementById('video');
-const placeholder = document.getElementById('placeholder');
-const startBtn = document.getElementById('start');
-const captureBtn = document.getElementById('capture');
-const stopBtn = document.getElementById('stop');
-const countdown = document.getElementById('countdown');
-const statusEl = document.getElementById('status');
-const gestureStatus = document.getElementById('gestureStatus');
-const gestureNote = document.getElementById('gestureNote');
-const photoCount = document.getElementById('photoCount');
-const empty = document.getElementById('empty');
-const result = document.getElementById('result');
-const thumbnails = document.getElementById('thumbnails');
-const strip = document.getElementById('strip');
-const ctx = strip.getContext('2d');
+const video = document.getElementById("video");
+const placeholder = document.getElementById("placeholder");
+const startBtn = document.getElementById("startBtn");
+const captureBtn = document.getElementById("captureBtn");
+const countdown = document.getElementById("countdown");
+const cameraStatus = document.getElementById("cameraStatus");
+const resultStatus = document.getElementById("resultStatus");
+const resultCanvas = document.getElementById("resultCanvas");
+const resultCtx = resultCanvas.getContext("2d");
+const emptyResult = document.getElementById("emptyResult");
+const downloadBtn = document.getElementById("downloadBtn");
+const retakeBtn = document.getElementById("retakeBtn");
+const cameraStage = document.getElementById("cameraStage");
 
 let stream = null;
 let hands = null;
-let mpCamera = null;
-let cameraOn = false;
-let takingPhotos = false;
+let handLoopActive = false;
+let processingHands = false;
+let isCapturing = false;
+let lastGestureTime = 0;
+let openPalmSince = 0;
+let selectedFilter = "original";
+let selectedFrame = "mint";
+let selectedBackground = "none";
 let photos = [];
-let filterName = 'none';
-let frameName = 'mint';
-let sticker = '✨';
-let palmSince = 0;
-let lastGesture = 0;
-let gestureLocked = false;
+let toastTimer = null;
 
 const filters = {
-  none: 'none',
-  mono: 'grayscale(1) contrast(1.08)',
-  vintage: 'sepia(.55) contrast(1.05) saturate(.85)',
-  warm: 'saturate(1.3) sepia(.16) brightness(1.04)',
-  dreamy: 'brightness(1.13) saturate(.82) contrast(.94)',
-  cool: 'hue-rotate(18deg) saturate(.9)'
+  original: "none",
+  mono: "grayscale(1) contrast(1.65) brightness(.88)",
+  vintage: "sepia(.95) contrast(1.3) saturate(.82) brightness(1.02)",
+  warm: "sepia(.34) saturate(2.25) contrast(1.2) brightness(1.06)",
+  dreamy: "saturate(1.9) brightness(1.18) contrast(.84)",
+  cool: "hue-rotate(18deg) saturate(1.85) contrast(1.22) brightness(1.02)",
+  y2k: "saturate(2.8) contrast(1.28) brightness(1.08) hue-rotate(-8deg)",
+  drama: "grayscale(.7) contrast(2.05) brightness(.82)",
+  rose: "sepia(.2) hue-rotate(300deg) saturate(1.85) contrast(1.12)"
 };
 
-const colors = {
-  mint: '#c9eee5',
-  blue: '#d4e7ff',
-  yellow: '#ffeba9',
-  purple: '#e4d9ff',
-  peach: '#f8ddd2',
-  night: '#29364b'
+const backgrounds = {
+  none: "linear-gradient(135deg,#dce9ff,#f9e4ed)",
+  sky: "linear-gradient(135deg,#80caff,#d9f3ff)",
+  sunset: "linear-gradient(135deg,#ff8b78,#ffd59a,#a58bdf)",
+  flower: "radial-gradient(circle at 20% 30%,#fff4b8 0 10%,transparent 11%),radial-gradient(circle at 70% 65%,#ffc6d7 0 13%,transparent 14%),linear-gradient(135deg,#b7e7c5,#f7cddd)",
+  mint: "linear-gradient(135deg,#a8e6cf,#e6ffdf)",
+  night: "linear-gradient(135deg,#17203d,#60558d,#d48fae)",
+  peach: "linear-gradient(135deg,#ffd3ad,#ffb3a7)",
+  lilac: "linear-gradient(135deg,#c9b6ff,#f0d9ff)"
 };
 
-const textColors = {
-  mint: '#29364b',
-  blue: '#29364b',
-  yellow: '#574725',
-  purple: '#44365d',
-  peach: '#604139',
-  night: '#ffffff'
+const frames = {
+  mint: { bg: "#bfe8d7", ink: "#31594b" },
+  blue: { bg: "#b9d6ff", ink: "#284d82" },
+  yellow: { bg: "#ffe5a0", ink: "#795b22" },
+  purple: { bg: "#d9c4ff", ink: "#59417d" },
+  peach: { bg: "#ffcbb6", ink: "#854f43" },
+  night: { bg: "#29304b", ink: "#ffffff" }
 };
 
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+function showToast(message) {
+  const toast = document.getElementById("toast");
+  toast.textContent = message;
+  toast.classList.remove("hidden");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.add("hidden"), 3200);
 }
 
-function setStatus(message, active = false) {
-  statusEl.textContent = (active ? '🟢 ' : '🟡 ') + message;
+function setFilter(name) {
+  selectedFilter = name;
+  video.style.setProperty("--unused", "0");
+  video.style.filter = filters[name];
+  cameraStage.style.setProperty("--live-filter", filters[name]);
+
+  document.querySelectorAll(".filter-btn").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.filter === name);
+  });
 }
 
-document.querySelectorAll('.filter').forEach(button => {
-  button.addEventListener('click', () => {
-    filterName = button.dataset.filter;
-    video.style.filter = filters[filterName];
-    document.querySelectorAll('.filter').forEach(b =>
-      b.classList.toggle('active', b === button)
-    );
+document.querySelectorAll(".filter-btn").forEach(btn => {
+  btn.addEventListener("click", () => setFilter(btn.dataset.filter));
+});
+
+document.querySelectorAll("[data-bg]").forEach(btn => {
+  btn.addEventListener("click", () => {
+    selectedBackground = btn.dataset.bg;
+    cameraStage.style.setProperty("--camera-bg", backgrounds[selectedBackground]);
+
+    document.querySelectorAll("[data-bg]").forEach(item => {
+      item.classList.toggle("active", item === btn);
+    });
+
+    showToast("Background " + btn.dataset.bg + " dipilih ✨");
   });
 });
 
-document.querySelectorAll('.frame').forEach(button => {
-  button.addEventListener('click', () => {
-    frameName = button.dataset.frame;
-    document.querySelectorAll('.frame').forEach(b =>
-      b.classList.toggle('active', b === button)
-    );
-    if (photos.length) renderStrip();
-  });
-});
+document.querySelectorAll("[data-frame]").forEach(btn => {
+  btn.addEventListener("click", () => {
+    selectedFrame = btn.dataset.frame;
 
-document.querySelectorAll('.sticker').forEach(button => {
-  button.addEventListener('click', () => {
-    sticker = button.dataset.sticker;
-    document.querySelectorAll('.sticker').forEach(b =>
-      b.classList.toggle('active', b === button)
-    );
-    if (photos.length) renderStrip();
+    document.querySelectorAll("[data-frame]").forEach(item => {
+      item.classList.toggle("active", item === btn);
+    });
+
+    if (photos.length) renderPhotostrip();
   });
 });
 
 async function startCamera() {
-  if (cameraOn) return;
-
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    alert('Browser tidak mendukung kamera. Buka website melalui HTTPS.');
+  if (stream) {
+    showToast("Kamera sudah aktif.");
     return;
   }
+
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    showToast("Kamera membutuhkan HTTPS. Buka website melalui GitHub Pages.");
+    return;
+  }
+
+  startBtn.disabled = true;
+  startBtn.textContent = "Mengaktifkan kamera...";
 
   try {
     stream = await navigator.mediaDevices.getUserMedia({
       video: {
-        facingMode: 'user',
+        facingMode: "user",
         width: { ideal: 1280 },
         height: { ideal: 960 }
       },
@@ -720,312 +758,299 @@ async function startCamera() {
     });
 
     video.srcObject = stream;
+    video.classList.remove("hidden");
     await video.play();
-    cameraOn = true;
 
-    placeholder.style.display = 'none';
-    startBtn.disabled = true;
+    placeholder.classList.add("hidden");
+    cameraStatus.textContent = "Kamera aktif ●";
     captureBtn.disabled = false;
-    stopBtn.disabled = false;
-    setStatus('Kamera aktif', true);
-    gestureStatus.textContent = '✋ Menunggu telapak';
-    startHandDetection();
+    startBtn.textContent = "✓ Kamera Aktif";
+    startBtn.disabled = false;
+
+    await setupHandDetection();
+    showToast("Kamera aktif! Pilih filter dan mulai berfoto 📸");
   } catch (error) {
-    alert('Kamera gagal dibuka. Izinkan akses kamera pada browser dan pastikan tidak sedang digunakan aplikasi lain. Detail: ' + error.message);
+    console.error(error);
+    stream = null;
+    startBtn.disabled = false;
+    startBtn.textContent = "✦ Coba Lagi";
+
+    let message = "Kamera tidak dapat diakses. Periksa izin kamera browser.";
+    if (error.name === "NotAllowedError") {
+      message = "Izin kamera ditolak. Izinkan kamera melalui pengaturan browser.";
+    } else if (error.name === "NotFoundError") {
+      message = "Kamera tidak ditemukan pada perangkat ini.";
+    }
+    showToast(message);
   }
 }
 
-function stopCamera() {
-  if (stream) stream.getTracks().forEach(track => track.stop());
-  stream = null;
-  cameraOn = false;
+startBtn.addEventListener("click", startCamera);
 
-  if (mpCamera) {
-    try { mpCamera.stop(); } catch (e) {}
-    mpCamera = null;
-  }
-
-  if (hands) {
-    try { hands.close(); } catch (e) {}
-    hands = null;
-  }
-
-  video.srcObject = null;
-  video.style.filter = 'none';
-  placeholder.style.display = 'flex';
-  startBtn.disabled = false;
-  captureBtn.disabled = true;
-  stopBtn.disabled = true;
-  setStatus('Kamera standby');
-  gestureStatus.textContent = '✋ Gesture standby';
-}
-
-startBtn.addEventListener('click', startCamera);
-stopBtn.addEventListener('click', stopCamera);
-
-function startHandDetection() {
-  if (!window.Hands || !window.Camera) {
-    gestureStatus.textContent = 'Gesture tidak tersedia';
-    gestureNote.textContent = 'Pustaka deteksi tangan tidak berhasil dimuat. Tombol ambil foto tetap bisa digunakan.';
+async function setupHandDetection() {
+  if (typeof Hands === "undefined") {
+    showToast("Deteksi gesture tidak tersedia. Tombol foto manual tetap bisa digunakan.");
     return;
   }
 
-  hands = new Hands({
-    locateFile: file =>
-      'https://cdn.jsdelivr.net/npm/@mediapipe/hands/' + file
-  });
+  try {
+    hands = new Hands({
+      locateFile: file => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+    });
 
-  hands.setOptions({
-    maxNumHands: 1,
-    modelComplexity: 1,
-    minDetectionConfidence: 0.65,
-    minTrackingConfidence: 0.6
-  });
+    hands.setOptions({
+      maxNumHands: 1,
+      modelComplexity: 1,
+      minDetectionConfidence: 0.7,
+      minTrackingConfidence: 0.65
+    });
 
-  hands.onResults(results => {
-    if (!cameraOn || takingPhotos) return;
+    hands.onResults(onHandResults);
+    handLoopActive = true;
+    runHandLoop();
+  } catch (error) {
+    console.error("Hand detection error:", error);
+    showToast("Deteksi tangan gagal dimulai. Kamu tetap bisa foto manual.");
+  }
+}
 
-    const landmarks =
-      results.multiHandLandmarks &&
-      results.multiHandLandmarks[0];
-
-    if (!landmarks) {
-      palmSince = 0;
-      gestureLocked = false;
-      gestureStatus.textContent = '✋ Menunggu telapak';
-      return;
-    }
-
-    // Deteksi perkiraan jari terbuka berdasarkan posisi landmark.
-    const tips = [8, 12, 16, 20];
-    const middle = [6, 10, 14, 18];
-    const extended = tips.filter((tip, i) =>
-      landmarks[tip].y < landmarks[middle[i]].y
-    ).length;
-
-    if (extended >= 4) {
-      gestureStatus.textContent = '✋ Telapak terdeteksi!';
-
-      if (!palmSince) palmSince = Date.now();
-
-      if (
-        Date.now() - palmSince > 1000 &&
-        Date.now() - lastGesture > 12000 &&
-        !gestureLocked
-      ) {
-        gestureLocked = true;
-        lastGesture = Date.now();
-        takePhotoSequence();
-      }
-    } else {
-      palmSince = 0;
-      gestureLocked = false;
-      gestureStatus.textContent = '✋ Menunggu telapak';
-    }
-  });
-
-  mpCamera = new Camera(video, {
-    onFrame: async () => {
-      if (hands && cameraOn) {
+async function runHandLoop() {
+  while (handLoopActive) {
+    if (hands && video.readyState >= 2 && !processingHands && !isCapturing) {
+      processingHands = true;
+      try {
         await hands.send({ image: video });
+      } catch (error) {
+        console.warn("Frame tangan gagal diproses:", error);
       }
-    },
-    width: 640,
-    height: 480
-  });
+      processingHands = false;
+    }
 
-  mpCamera.start().catch(() => {
-    gestureStatus.textContent = 'Gesture tidak tersedia';
-  });
+    await new Promise(resolve => setTimeout(resolve, 120));
+  }
 }
 
-async function showCountdown(number) {
-  countdown.textContent = number;
-  countdown.classList.add('show');
-  await sleep(750);
-  countdown.classList.remove('show');
+function onHandResults(results) {
+  if (isCapturing) return;
+
+  const landmarks = results.multiHandLandmarks &&
+                    results.multiHandLandmarks[0];
+
+  if (!landmarks) {
+    openPalmSince = 0;
+    return;
+  }
+
+  // Perkiraan telapak terbuka: empat ujung jari berada di atas sendinya.
+  const fingertips = [8, 12, 16, 20];
+  const joints = [6, 10, 14, 18];
+  let extended = 0;
+
+  for (let i = 0; i < fingertips.length; i++) {
+    if (landmarks[fingertips[i]].y < landmarks[joints[i]].y) {
+      extended++;
+    }
+  }
+
+  const now = Date.now();
+
+  if (extended >= 4) {
+    if (!openPalmSince) openPalmSince = now;
+
+    // Telapak harus terlihat stabil selama sekitar 1 detik.
+    if (now - openPalmSince > 1000 &&
+        now - lastGestureTime > 8000) {
+      lastGestureTime = now;
+      openPalmSince = 0;
+      showToast("Telapak terdeteksi! Siap-siap berpose ✋");
+      takePhotoSequence();
+    }
+  } else {
+    openPalmSince = 0;
+  }
 }
 
-function captureOnePhoto() {
-  const width = video.videoWidth || 640;
-  const height = video.videoHeight || 480;
-  const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
-
-  const context = canvas.getContext('2d');
-
-  // Membalik hasil agar seperti cermin.
-  context.translate(width, 0);
-  context.scale(-1, 1);
-  context.filter = filters[filterName] || 'none';
-  context.drawImage(video, 0, 0, width, height);
-  context.filter = 'none';
-
-  return canvas.toDataURL('image/jpeg', 0.93);
+function wait(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 async function takePhotoSequence() {
-  if (!cameraOn || takingPhotos) return;
+  if (!stream || isCapturing) return;
 
-  takingPhotos = true;
+  if (video.readyState < 2) {
+    showToast("Tunggu sampai kamera siap.");
+    return;
+  }
+
+  isCapturing = true;
   captureBtn.disabled = true;
+  retakeBtn.disabled = true;
   photos = [];
-  updateCount();
 
-  for (let i = 0; i < 3; i++) {
-    await showCountdown(3);
-    await showCountdown(2);
-    await showCountdown(1);
+  const filterForSession = filters[selectedFilter];
 
-    photos.push(captureOnePhoto());
-    updateCount();
-    await sleep(700);
-  }
+  try {
+    for (let i = 0; i < 3; i++) {
+      for (let count = 3; count >= 1; count--) {
+        countdown.textContent = count;
+        countdown.classList.remove("hidden");
+        await wait(700);
+      }
 
-  takingPhotos = false;
-  captureBtn.disabled = false;
-  renderResults();
-}
+      countdown.textContent = "✦";
+      await wait(180);
 
-captureBtn.addEventListener('click', takePhotoSequence);
+      photos.push(captureFrame(filterForSession));
+      countdown.classList.add("hidden");
 
-function updateCount() {
-  photoCount.textContent = photos.length + ' / 3 foto';
-}
-
-function renderResults() {
-  empty.hidden = true;
-  result.hidden = false;
-  thumbnails.innerHTML = '';
-
-  photos.forEach(src => {
-    const img = document.createElement('img');
-    img.src = src;
-    img.alt = 'Foto photobooth';
-    thumbnails.appendChild(img);
-  });
-
-  renderStrip();
-}
-
-function renderStrip() {
-  const width = 600;
-  const padding = 28;
-  const photoHeight = 340;
-  const gap = 16;
-  const top = 90;
-  const bottom = 85;
-  const photoWidth = width - padding * 2;
-
-  strip.width = width;
-  strip.height =
-    top +
-    photos.length * photoHeight +
-    Math.max(0, photos.length - 1) * gap +
-    bottom;
-
-  ctx.fillStyle = colors[frameName];
-  ctx.fillRect(0, 0, strip.width, strip.height);
-
-  if (frameName === 'night') {
-    ctx.fillStyle = '#ffeba9';
-    for (let i = 0; i < 24; i++) {
-      ctx.beginPath();
-      ctx.arc(
-        (i * 89 + 25) % width,
-        (i * 57 + 12) % strip.height,
-        2 + i % 3,
-        0,
-        Math.PI * 2
-      );
-      ctx.fill();
+      if (i < 2) await wait(600);
     }
+
+    renderPhotostrip();
+    showToast("Yay! 3 foto berhasil diambil. Download hasilnya 💖");
+  } catch (error) {
+    console.error(error);
+    showToast("Ada masalah saat mengambil foto. Coba lagi.");
+  } finally {
+    countdown.classList.add("hidden");
+    isCapturing = false;
+    captureBtn.disabled = !stream;
+    retakeBtn.disabled = photos.length === 0;
   }
-
-  ctx.textAlign = 'center';
-  ctx.fillStyle = textColors[frameName];
-  ctx.font = '700 31px Fredoka, sans-serif';
-  ctx.fillText('SNAP & SMILE', width / 2, 43);
-  ctx.font = '600 15px Nunito, sans-serif';
-  ctx.fillText('little moments, big memories', width / 2, 68);
-
-  let completed = 0;
-
-  photos.forEach((src, index) => {
-    const image = new Image();
-
-    image.onload = () => {
-      const y = top + index * (photoHeight + gap);
-
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(
-        padding - 5, y - 5,
-        photoWidth + 10, photoHeight + 10
-      );
-
-      const imageRatio = image.width / image.height;
-      const boxRatio = photoWidth / photoHeight;
-      let sx = 0, sy = 0, sw = image.width, sh = image.height;
-
-      if (imageRatio > boxRatio) {
-        sw = image.height * boxRatio;
-        sx = (image.width - sw) / 2;
-      } else {
-        sh = image.width / boxRatio;
-        sy = (image.height - sh) / 2;
-      }
-
-      ctx.drawImage(
-        image, sx, sy, sw, sh,
-        padding, y, photoWidth, photoHeight
-      );
-
-      if (sticker) {
-        ctx.textAlign = 'right';
-        ctx.font = '42px serif';
-        ctx.fillText(sticker, width - padding - 9, y + 45);
-        ctx.textAlign = 'left';
-        ctx.fillText(sticker, padding + 8, y + photoHeight - 12);
-      }
-
-      completed++;
-
-      if (completed === photos.length) {
-        ctx.fillStyle = textColors[frameName];
-        ctx.textAlign = 'center';
-        ctx.font = '700 20px Fredoka, sans-serif';
-        ctx.fillText('✦ PHOTOBOOTH ✦', width / 2, strip.height - 38);
-        ctx.font = '12px Nunito, sans-serif';
-        ctx.fillText(
-          new Date().toLocaleDateString('id-ID'),
-          width / 2, strip.height - 17
-        );
-      }
-    };
-
-    image.src = src;
-  });
 }
 
-document.getElementById('download').addEventListener('click', () => {
+function captureFrame(filterValue) {
+  const width = video.videoWidth || 1280;
+  const height = video.videoHeight || 960;
+
+  const canvas = document.createElement("canvas");
+  canvas.width = 700;
+  canvas.height = 525;
+
+  const ctx = canvas.getContext("2d");
+  ctx.save();
+  ctx.translate(canvas.width, 0);
+  ctx.scale(-1, 1);
+  ctx.filter = filterValue;
+
+  // Crop ke rasio 4:3 tanpa merusak proporsi gambar.
+  const targetRatio = canvas.width / canvas.height;
+  const sourceRatio = width / height;
+  let sx = 0, sy = 0, sw = width, sh = height;
+
+  if (sourceRatio > targetRatio) {
+    sw = height * targetRatio;
+    sx = (width - sw) / 2;
+  } else {
+    sh = width / targetRatio;
+    sy = (height - sh) / 2;
+  }
+
+  ctx.drawImage(video, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+  ctx.restore();
+
+  return canvas;
+}
+
+captureBtn.addEventListener("click", takePhotoSequence);
+retakeBtn.addEventListener("click", takePhotoSequence);
+
+function renderPhotostrip() {
   if (!photos.length) return;
 
-  const link = document.createElement('a');
-  link.download = 'snap-smile-photostrip.png';
-  link.href = strip.toDataURL('image/png');
-  link.click();
+  const width = 700;
+  const photoHeight = 525;
+  const margin = 34;
+  const gap = 20;
+  const headerHeight = 120;
+  const footerHeight = 115;
+  const height = margin * 2 + headerHeight + photos.length * photoHeight +
+                 (photos.length - 1) * gap + footerHeight;
+
+  resultCanvas.width = width;
+  resultCanvas.height = height;
+
+  const ctx = resultCtx;
+  const frame = frames[selectedFrame];
+
+  ctx.fillStyle = frame.bg;
+  ctx.fillRect(0, 0, width, height);
+
+  // Header
+  ctx.fillStyle = frame.ink;
+  ctx.textAlign = "center";
+  ctx.font = "bold 24px 'DM Sans', sans-serif";
+  ctx.fillText("D'SHOOT PHOTOBOOTH", width / 2, margin + 36);
+
+  ctx.font = "14px 'DM Sans', sans-serif";
+  ctx.fillText("little moments, big memories", width / 2, margin + 67);
+
+  // Decorative header marks
+  ctx.font = "23px sans-serif";
+  ctx.fillText("✦  ♡  ✦", width / 2, margin + 99);
+
+  let y = margin + headerHeight;
+
+  photos.forEach((photo, index) => {
+    // White photo border
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(margin - 7, y - 7, width - margin * 2 + 14, photoHeight + 14);
+
+    ctx.drawImage(photo, margin, y, width - margin * 2, photoHeight);
+
+    // Number tag
+    ctx.fillStyle = frame.bg;
+    ctx.fillRect(margin + 10, y + 10, 49, 31);
+    ctx.fillStyle = frame.ink;
+    ctx.font = "bold 15px 'DM Sans', sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("0" + (index + 1), margin + 34, y + 31);
+
+    y += photoHeight + gap;
+  });
+
+  // Footer
+  ctx.fillStyle = frame.ink;
+  ctx.textAlign = "center";
+  ctx.font = "bold 19px 'DM Sans', sans-serif";
+  ctx.fillText("THAT'S A WRAP! ✨", width / 2, height - margin - 53);
+
+  ctx.font = "13px 'DM Sans', sans-serif";
+  ctx.fillText(new Date().toLocaleDateString("id-ID", {
+    day: "numeric", month: "short", year: "numeric"
+  }), width / 2, height - margin - 25);
+
+  emptyResult.classList.add("hidden");
+  resultCanvas.classList.remove("hidden");
+  downloadBtn.disabled = false;
+  retakeBtn.disabled = false;
+  resultStatus.textContent = "3 foto siap ✓";
+}
+
+downloadBtn.addEventListener("click", () => {
+  if (!photos.length) return;
+
+  resultCanvas.toBlob(blob => {
+    if (!blob) {
+      showToast("Gagal membuat file. Silakan coba lagi.");
+      return;
+    }
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "snap-and-smile-photostrip.png";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1500);
+
+    showToast("Photostrip berhasil disimpan! 🎉");
+  }, "image/png");
 });
 
-document.getElementById('retake').addEventListener('click', () => {
-  photos = [];
-  updateCount();
-  thumbnails.innerHTML = '';
-  result.hidden = true;
-  empty.hidden = false;
-});
-
-window.addEventListener('beforeunload', () => {
+window.addEventListener("beforeunload", () => {
+  handLoopActive = false;
   if (stream) stream.getTracks().forEach(track => track.stop());
 });
 </script>
